@@ -1,0 +1,11 @@
+Pane {
+    -fx-background-color: white;
+    -fx-vgap: 1;
+    -fx-hgap: 1;
+    -fx-padding: 1;
+}
+
+GridPane {
+    -fx-background-color: white ;
+    -fx-padding: 10 ;
+}

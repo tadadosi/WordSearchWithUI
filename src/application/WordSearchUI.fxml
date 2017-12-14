@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.net.URL?>
+<?import javafx.scene.canvas.Canvas?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.CheckBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Slider?>
+<?import javafx.scene.control.Tab?>
+<?import javafx.scene.control.TabPane?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Pane?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
+
+<AnchorPane xmlns="http://javafx.com/javafx/9.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="application.EventHandlingController">
+   <children>
+      <VBox layoutX="10.0" layoutY="10.0" prefHeight="800.0" prefWidth="800.0">
+         <children>
+            <AnchorPane maxHeight="-1.0" maxWidth="-1.0" prefHeight="361.0" prefWidth="825.0" VBox.vgrow="ALWAYS">
+               <children>
+                  <TabPane layoutX="7.0" layoutY="268.0" prefHeight="501.0" prefWidth="787.0" tabClosingPolicy="UNAVAILABLE">
+                     <tabs>
+                        <Tab closable="false" text="Zodziai">
+                           <content>
+                              <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="297.0" prefWidth="632.0">
+                                 <children>
+                                    <TextArea fx:id="inputWordTextArea" layoutX="26.0" layoutY="71.0" prefHeight="328.0" prefWidth="276.0" />
+                                    <Label layoutX="26.0" layoutY="34.0" text="Žodžiai (atskirkite vieną žodį nuo kito nauja eilute)" />
+                                    <Button fx:id="saveWordsButton" layoutX="20.0" layoutY="424.0" mnemonicParsing="false" prefHeight="25.0" prefWidth="287.0" text="Saugoti i tekstinį formatą" />
+                                 </children>
+                              </AnchorPane>
+                           </content>
+                        </Tab>
+                        <Tab closable="false" text="Vaizdas">
+                           <content>
+                              <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
+                                 <children>
+                                    <Pane layoutX="1.0" layoutY="3.0" prefHeight="501.0" prefWidth="785.0" style="-fx-background-color: white;">
+                                       <children>
+                                          <Canvas fx:id="viewCanvas" height="459.0" width="787.0" />
+                                       </children></Pane>
+                                 </children></AnchorPane>
+                           </content>
+                        </Tab>
+                        <Tab closable="false" text="Atsakymas">
+                           <content>
+                              <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="326.0" prefWidth="1157.0">
+                                 <children>
+                                    <Pane layoutY="3.0" prefHeight="472.0" prefWidth="787.0" style="-fx-background-color: white;">
+                                       <children>
+                                          <Canvas fx:id="answerCanvas" height="472.0" layoutX="-1.0" width="787.0" />
+                                       </children></Pane>
+                                 </children></AnchorPane>
+                           </content>
+                        </Tab>
+                     </tabs>
+                  </TabPane>
+                  <Button fx:id="generateButton" layoutX="520.0" layoutY="40.0" mnemonicParsing="false" prefWidth="80.0" text="Generuoti" AnchorPane.topAnchor="40.0" />
+                  <Slider fx:id="horizontalSlider" layoutX="74.0" layoutY="183.0" majorTickUnit="10.0" max="15.0" minorTickCount="5" showTickLabels="true" showTickMarks="true" value="10.0" />
+                  <Slider fx:id="verticalSlider" layoutX="35.0" layoutY="50.0" majorTickUnit="10.0" max="15.0" minorTickCount="5" nodeOrientation="RIGHT_TO_LEFT" orientation="VERTICAL" showTickLabels="true" showTickMarks="true" value="10.0" />
+                  <TextField fx:id="answerTextField" layoutX="263.0" layoutY="50.0" />
+                  <Label fx:id="errorAnswerLabel" layoutX="263.0" layoutY="144.0" prefHeight="17.0" prefWidth="102.0" textFill="RED" />
+                  <CheckBox fx:id="shuffleAnswerCheckBox" layoutX="263.0" layoutY="86.0" mnemonicParsing="false" text="Išmetytos rakto raidės (random)" />
+                  <CheckBox fx:id="colorizeLettersCheckBox" layoutX="263.0" layoutY="112.0" mnemonicParsing="false" text="raktą rodyti raudonai" />
+                  <Label layoutX="61.0" layoutY="21.0" text="Išmatavimai">
+                     <font>
+                        <Font size="14.0" />
+                     </font></Label>
+                  <Button fx:id="stopButton" layoutX="520.0" layoutY="90.0" mnemonicParsing="false" prefWidth="80.0" text="Stabdyti" />
+                  <Button fx:id="closeButton" layoutX="520.0" layoutY="190.0" mnemonicParsing="false" prefWidth="80.0" text="Uždaryti" />
+                  <Button layoutX="520.0" layoutY="140.0" mnemonicParsing="false" prefWidth="80.0" text="Pagalba" />
+                  <Label fx:id="errorLabel" layoutX="35.0" layoutY="233.0" prefHeight="17.0" prefWidth="734.0" textFill="RED" />
+                  <Label fx:id="sizeLabel" alignment="CENTER" contentDisplay="CENTER" layoutX="79.0" layoutY="94.0" prefHeight="38.0" prefWidth="125.0" text="10X10" textAlignment="CENTER">
+                     <font>
+                        <Font size="26.0" />
+                     </font>
+                  </Label>
+                  <Label layoutX="263.0" layoutY="144.0" prefHeight="20.0" prefWidth="102.0" text="Raidžių skaičius:">
+                     <font>
+                        <Font size="14.0" />
+                     </font>
+                  </Label>
+                  <Label fx:id="errorAnswerLabel" layoutX="374.0" layoutY="144.0" prefHeight="17.0" prefWidth="88.0">
+                     <font>
+                        <Font size="14.0" />
+                     </font>
+                  </Label>
+               </children>
+            </AnchorPane>
+         </children>
+         <stylesheets>
+            <URL value="@../../../../Users/NB-127/BasicApplication_css/BasicApplication.css" />
+         </stylesheets>
+      </VBox>
+      <HBox prefHeight="100.0" prefWidth="200.0" />
+   </children>
+</AnchorPane>
