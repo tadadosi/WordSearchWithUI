@@ -11,7 +11,6 @@
 <?import javafx.scene.control.TextArea?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.AnchorPane?>
-<?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Pane?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
@@ -39,9 +38,9 @@
                            <content>
                               <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
                                  <children>
-                                    <Pane layoutX="1.0" layoutY="3.0" prefHeight="501.0" prefWidth="785.0" style="-fx-background-color: white;">
+                                    <Pane layoutX="1.0" layoutY="-3.0" prefHeight="507.0" prefWidth="785.0" style="-fx-background-color: white;">
                                        <children>
-                                          <Canvas fx:id="viewCanvas" height="459.0" width="787.0" />
+                                          <Canvas fx:id="viewCanvas" height="477.0" layoutY="-5.0" width="787.0" />
                                        </children></Pane>
                                  </children></AnchorPane>
                            </content>
@@ -50,9 +49,9 @@
                            <content>
                               <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="326.0" prefWidth="1157.0">
                                  <children>
-                                    <Pane layoutY="3.0" prefHeight="472.0" prefWidth="787.0" style="-fx-background-color: white;">
+                                    <Pane layoutX="1.0" prefHeight="501.0" prefWidth="785.0" style="-fx-background-color: white;">
                                        <children>
-                                          <Canvas fx:id="answerCanvas" height="472.0" layoutX="-1.0" width="787.0" />
+                                          <Canvas fx:id="answerCanvas" height="472.0" width="787.0" />
                                        </children></Pane>
                                  </children></AnchorPane>
                            </content>
@@ -89,6 +88,11 @@
                         <Font size="14.0" />
                      </font>
                   </Label>
+                  <Label layoutX="263.0" layoutY="21.0" prefHeight="17.0" prefWidth="102.0" text="Raktinis žodis">
+                     <font>
+                        <Font size="14.0" />
+                     </font>
+                  </Label>
                </children>
             </AnchorPane>
          </children>
@@ -96,6 +100,5 @@
             <URL value="@../../../../Users/NB-127/BasicApplication_css/BasicApplication.css" />
          </stylesheets>
       </VBox>
-      <HBox prefHeight="100.0" prefWidth="200.0" />
    </children>
 </AnchorPane>

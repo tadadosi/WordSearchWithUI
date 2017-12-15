@@ -20,10 +20,10 @@ public class StartingPoint {
 	WordConfig config;
 	private boolean isFinished;
 	//Kiek maximaliai ejimu gali paeit atgal
-	private final static int MAX_STEPBACKS = 7;
+	private final static int MAX_STEPBACKS = 10;
 	
 	//Kiek kartu bandyt paeit atgal kiekviena zingsni. Pvz paeini x kart 1 zingsni atgal, tuomet einu 2 zingsnius atgal jei vis dar nepavyksta ir tt.
-	private final static int DEFAULT_ITERATION_COUNT = 3;
+	private final static int DEFAULT_ITERATION_COUNT = 10;
 	private int zingsniai;
 	
 	

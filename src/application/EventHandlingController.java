@@ -29,7 +29,7 @@ import javafx.scene.text.Font;
 
 public class EventHandlingController {
     
-    public final static String FILE_TO_SAVE_WORDS = "src/application/words.txt";
+    public final static String FILE_TO_SAVE_WORDS = "./words.txt";
     
     @FXML
     private Button generateButton;
@@ -79,7 +79,7 @@ public class EventHandlingController {
     private String answer;
     
     private boolean shutdown;
-    
+    public static String newLine = System.getProperty("line.separator");
     /**
      * The constructor (is called before the initialize()-method).
      */
@@ -144,13 +144,10 @@ public class EventHandlingController {
         try {
             gridObj = gridGenerator.run();
             drawGrid(gridObj);
+            handleSuccess("Sugeneravo!");
         } catch (WordError e) {
             handleError(e.getMessage());
         }
-        
-        
-            
-        System.out.println("baige");
         generateButton.setDisable(false);
         stopButton.setDisable(true);
     }
@@ -311,9 +308,10 @@ public class EventHandlingController {
         saveWordsButton.setOnAction((event) -> {
             getWordsFromTextArea();
             try {
+                handleSuccess("Uþsaugota á words.txt failà");
                 writeToFile(FILE_TO_SAVE_WORDS, words);
             } catch (IOException e) {
-                handleError("Failed to write to file");
+                handleError("Nepavyko áraðyti 5 failà!");
             }
             
             
@@ -421,8 +419,15 @@ public class EventHandlingController {
     }
     
     private void handleError(String err) {
+        errorLabel.setTextFill(Color.RED);
         errorLabel.setText(err);
     }
+    
+    private void handleSuccess(String err) {
+        errorLabel.setTextFill(Color.GREEN);
+        errorLabel.setText(err);
+    }
+    
     
     private void resetError() {
         errorLabel.setText("");
@@ -437,7 +442,7 @@ public class EventHandlingController {
             String str = arrData.get(i).toString();
             writer.write(str);
             if(i < size-1) //**This prevent creating a blank like at the end of the file**
-                writer.write("\n");
+                writer.write(newLine);
         }
         writer.close();
     }
