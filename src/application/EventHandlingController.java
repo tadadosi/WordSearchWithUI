@@ -15,6 +15,7 @@ import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.fxml.FXML;
+import javafx.geometry.VPos;
 import javafx.scene.Group;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
@@ -26,6 +27,7 @@ import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
+import javafx.scene.text.TextAlignment;
 
 public class EventHandlingController {
     
@@ -184,7 +186,7 @@ public class EventHandlingController {
         
         gc.strokeRect(leftPadding, topPadding, gridWidth, gridHeight);
         
-        int gapToLetter = 15;
+        int gapToLetter = cellSize/2;
         gc.setFont(new Font("Arial", cellSize - 5));
         
         //Draw grid lines
@@ -211,6 +213,10 @@ public class EventHandlingController {
         String answerToWrite = randomLetters ? Shuffle.shuffle(answer) : answer;
         
         int answerCounter = 0;
+        
+        gc.setTextAlign(TextAlignment.CENTER);
+        gc.setTextBaseline(VPos.CENTER);
+        
         for (int i=0; i< rowN; i++) {
             for (int j=0; j< colN; j++) {
                 String letter =  Character.toString(grid[i][j].getLetter());
@@ -222,13 +228,13 @@ public class EventHandlingController {
                         gc.setFill(Color.RED);
                     }
                     if (writeText)
-                        gc.fillText( Character.toString(answerToWrite.charAt(answerCounter)), xBottomLeftCorner + gapToLetter/2, yBottomLeftCorner - gapToLetter/2);
+                        gc.fillText( Character.toString(answerToWrite.charAt(answerCounter)), xBottomLeftCorner + gapToLetter, yBottomLeftCorner - gapToLetter);
                     
                     answerCounter++;
                     gc.setFill(Color.BLACK);
                 } else {
                     if (writeText)
-                        gc.fillText( letter, leftPadding + (j * cellSize) + gapToLetter/2, topPadding + ((i+1) * cellSize) - gapToLetter/2);
+                        gc.fillText( letter, leftPadding + (j * cellSize) + gapToLetter, topPadding + ((i+1) * cellSize) - gapToLetter);
                     //Draw line over text
                     int direction = grid[i][j].getNextDirection();
                     //Need to find middle of the cell to know where to draw line from
