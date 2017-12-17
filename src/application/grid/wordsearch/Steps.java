@@ -4,9 +4,11 @@ package application.grid.wordsearch;
 import java.util.ArrayList;
 import java.util.List;
 
+import application.grid.config.WordConfig;
+
 public class Steps {
 
-	public static GridWithWord enterWordInGrid(Grid gridObj, int[] coord, String word) {
+	public static GridWithWord enterWordInGrid(Grid gridObj, int[] coord, String word, WordConfig config) {
 		Grid grid = new Grid(gridObj);
 		List<Integer> goodDirection = grid.determineDirection(coord);
 		List<GridWithWord> tempGridList = new ArrayList<GridWithWord>();
@@ -16,7 +18,7 @@ public class Steps {
 		tempGridList.add(tempGrid);
 		GridWithWord nextGrid = null;
 
-		for (int i = 0; i < word.length(); i++) {
+		for (int i = 0; i < word.length() + config.getInfoCellsNumber(); i++) {
 			// if we removed all tempGridList that means there is no way to add word
 			if (tempGridList.size() == 0)
 				return null;
@@ -29,7 +31,7 @@ public class Steps {
 					&& lastUnusedDirections.get(0) != 0) {
 
 				// Lets construct new tree of possibilities
-				nextGrid = moveOneStep(lastGrid);
+				nextGrid = moveOneStep(lastGrid, config, i);
 
 				// If there are at least 1 good direction and it is not last letter
 				if (nextGrid != null) {
@@ -53,12 +55,34 @@ public class Steps {
 		return tempGridList.get(tempGridList.size() - 1);
 	}
 
-	private static GridWithWord moveOneStep(GridWithWord lastStepGridObj) {
+	private static GridWithWord moveOneStep(GridWithWord lastStepGridObj,  WordConfig config, int letterIndex) {
 		GridWithWord lastStepGrid = new GridWithWord(lastStepGridObj);
 		int[] coord = lastStepGrid.getCurrentCoord();
 		Grid grid = lastStepGrid.getGrid();
+		System.out.println("Grid before enterng Letter");
+		System.out.println("current coords: " + coord[0] + ":" + coord[1]);
+		grid.printGrid();
 		String word = lastStepGrid.getWordToWrite();
+		
+		//Before entering word add empty description cells. Lets set description true in those cells
+		// if config.getInfoCellsNumber() == 0 we do not do anything
+		if (letterIndex == 0) {
+			if (config.getInfoCellsNumber() == 1) {
+				
+			} else if (config.getInfoCellsNumber() == 2) {
 
+			} else if (config.getInfoCellsNumber() == 3) {
+
+			} else if (config.getInfoCellsNumber() == 4) {
+
+			}
+		} else {
+			
+		}
+		
+		
+		
+		
 		int whichDirection = (int) Math.round(Math.random() * (lastStepGrid.getUnusedGoodDirection().size() - 1));
 		int goodDirection = lastStepGrid.getUnusedGoodDirection().get(whichDirection);
 
@@ -80,6 +104,11 @@ public class Steps {
 //		grid.setLastDirection(coord, goodDirection);
 		char letter = word.charAt(0);
 		grid.setLetter(coord, letter);
+		
+		System.out.println("Grid after enterng Letter");
+		grid.printGrid();
+		System.out.println("current coords: " + coord[0] +":"+ coord[1]);
+		System.out.println("good directions - " + grid.determineDirection(coord));
 		
 		//Reset mext direction for this cell in case it was written in the past
 		grid.setNextDirection(coord, 0);

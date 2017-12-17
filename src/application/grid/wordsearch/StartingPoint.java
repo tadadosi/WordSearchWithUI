@@ -41,7 +41,7 @@ public class StartingPoint {
 		this.finalGrid = new Grid(config.getGridSizeX(), config.getGridSizeY());
 		
 		
-		boolean isValid = Validations.validateWordsLength(words, answer, config.getGridSizeX(), config.getGridSizeY());
+		boolean isValid = Validations.validateWordsLength(words, answer, config);
 		
 		if (!isValid) {
 			throw new WordError("Invalid grid size");
@@ -61,10 +61,6 @@ public class StartingPoint {
 		for (this.zingsniai = 0; zingsniai< words.size(); zingsniai++) {
 		    String myWord = words.get(this.zingsniai);
 			// select starting position for the word
-		    skaitiklis++;
-		    if (skaitiklis > 100000) {
-		        throw new WordError("too many tries");
-		    } 
 		    if (!wordsAdded.isEmpty()) {
 		        int ilgis = wordsAdded.size();
 		        wordsToAdd = words.subList(wordsAdded.size(), words.size()); 
@@ -98,7 +94,7 @@ public class StartingPoint {
                 while (loopIndex < 10000 && !added) {
                     loopIndex++;
                     int[] coord = startingPosition(finalGrid, areaForWord);
-                    withWordEntered = Steps.enterWordInGrid(finalGrid, coord, myWord);
+                    withWordEntered = Steps.enterWordInGrid(finalGrid, coord, myWord, config);
                     
                     if (withWordEntered != null) {
                         gridAdded.add(withWordEntered);
@@ -179,11 +175,11 @@ public class StartingPoint {
 	}
 
 	// calculate weights for bin packing algorithm
-	public static List<Integer> calculateWeights(List<String> words) {
+	public List<Integer> calculateWeights(List<String> words) {
 
 		List<Integer> weights = new ArrayList<Integer>();
 		for (String word : words) {
-			weights.add(word.length());
+			weights.add(word.length() + config.getInfoCellsNumber());
 		}
 		return weights;
 	}
@@ -274,7 +270,7 @@ public class StartingPoint {
 	    
 	    int count = 0;
 	    for (int areaSize : areaList) {
-	      if (areaSize < shortestAnswer) {
+	      if (areaSize < shortestAnswer + config.getInfoCellsNumber()) {
 	          count +=areaSize;
 	      }
 	      if(count > answerLength)

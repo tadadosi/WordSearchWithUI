@@ -6,6 +6,9 @@ public class Cell {
 	private int areaId;
 	private int nextDirection;
 	private int lastDirection;
+	private boolean description;
+	private boolean firstLetter;
+	
 	
 	public Cell() {
 	}
@@ -15,6 +18,8 @@ public class Cell {
 		this.areaId = other.areaId;
 		this.nextDirection = other.nextDirection;
 		this.lastDirection = other.lastDirection;
+		this.description = other.description;
+		this.firstLetter = other.firstLetter;
 	}
 	
 	public int getId() {
@@ -52,5 +57,17 @@ public class Cell {
     public void setLastDirection(int lastDirection) {
         this.lastDirection = lastDirection;
     }
+	public boolean isDescription() {
+		return description;
+	}
+	public void setDescription(boolean description) {
+		this.description = description;
+	}
+	public boolean isFirstLetter() {
+		return firstLetter;
+	}
+	public void setFirstLetter(boolean firstLetter) {
+		this.firstLetter = firstLetter;
+	}
 	
 }
