@@ -23,7 +23,7 @@
                <children>
                   <TabPane layoutX="7.0" layoutY="268.0" prefHeight="501.0" prefWidth="787.0" tabClosingPolicy="UNAVAILABLE">
                      <tabs>
-                        <Tab closable="false" text="Zodziai">
+                        <Tab closable="false" text="Žodziai">
                            <content>
                               <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="297.0" prefWidth="632.0">
                                  <children>
@@ -38,30 +38,43 @@
                            <content>
                               <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
                                  <children>
-                                    <Pane layoutX="1.0" layoutY="-3.0" prefHeight="507.0" prefWidth="785.0" style="-fx-background-color: white;">
+                                    <Pane style="-fx-background-color: white;">
                                        <children>
-                                          <Canvas fx:id="viewCanvas" height="477.0" layoutY="-5.0" width="787.0" />
+                                          <Canvas fx:id="viewCanvas" height="472.0" width="787.0" />
                                        </children></Pane>
                                  </children></AnchorPane>
                            </content>
                         </Tab>
                         <Tab closable="false" text="Atsakymas">
                            <content>
-                              <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="326.0" prefWidth="1157.0">
+                              <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
                                  <children>
-                                    <Pane layoutX="1.0" prefHeight="501.0" prefWidth="785.0" style="-fx-background-color: white;">
+                                    <Pane style="-fx-background-color: white;">
                                        <children>
                                           <Canvas fx:id="answerCanvas" height="472.0" width="787.0" />
                                        </children></Pane>
                                  </children></AnchorPane>
                            </content>
                         </Tab>
+                        <Tab text="Užduotis">
+                          <content>
+                            <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
+                                 <children>
+                                    <Pane style="-fx-background-color: white;">
+                                       <children>
+                                          <Canvas fx:id="problemCanvas" height="472.0" width="787.0" />
+                                       </children>
+                                    </Pane>
+                                 </children>
+                              </AnchorPane>
+                          </content>
+                        </Tab>
                      </tabs>
                   </TabPane>
-                  <Button fx:id="generateButton" layoutX="520.0" layoutY="40.0" mnemonicParsing="false" prefWidth="80.0" text="Generuoti" AnchorPane.topAnchor="40.0" />
+                  <Button fx:id="generateButton" layoutX="511.0" layoutY="50.0" mnemonicParsing="false" prefWidth="80.0" text="Generuoti" AnchorPane.topAnchor="50.0" />
                   <Slider fx:id="horizontalSlider" layoutX="74.0" layoutY="183.0" majorTickUnit="10.0" max="15.0" minorTickCount="5" showTickLabels="true" showTickMarks="true" value="10.0" />
                   <Slider fx:id="verticalSlider" layoutX="35.0" layoutY="50.0" majorTickUnit="10.0" max="15.0" minorTickCount="5" nodeOrientation="RIGHT_TO_LEFT" orientation="VERTICAL" showTickLabels="true" showTickMarks="true" value="10.0" />
-                  <TextField fx:id="answerTextField" layoutX="263.0" layoutY="50.0" />
+                  <TextField fx:id="answerTextField" layoutX="263.0" layoutY="50.0" prefHeight="25.0" prefWidth="190.0" />
                   <Label fx:id="errorAnswerLabel" layoutX="263.0" layoutY="144.0" prefHeight="17.0" prefWidth="102.0" textFill="RED" />
                   <CheckBox fx:id="shuffleAnswerCheckBox" layoutX="263.0" layoutY="86.0" mnemonicParsing="false" text="Išmetytos rakto raidės (random)" />
                   <CheckBox fx:id="colorizeLettersCheckBox" layoutX="263.0" layoutY="112.0" mnemonicParsing="false" text="raktą rodyti raudonai" />
@@ -69,9 +82,9 @@
                      <font>
                         <Font size="14.0" />
                      </font></Label>
-                  <Button fx:id="stopButton" layoutX="520.0" layoutY="90.0" mnemonicParsing="false" prefWidth="80.0" text="Stabdyti" />
-                  <Button fx:id="closeButton" layoutX="520.0" layoutY="190.0" mnemonicParsing="false" prefWidth="80.0" text="Uždaryti" />
-                  <Button layoutX="520.0" layoutY="140.0" mnemonicParsing="false" prefWidth="80.0" text="Pagalba" />
+                  <Button fx:id="stopButton" layoutX="659.0" layoutY="209.0" mnemonicParsing="false" prefWidth="80.0" text="Stabdyti" visible="false" />
+                  <Button fx:id="closeButton" layoutX="511.0" layoutY="132.0" mnemonicParsing="false" prefWidth="80.0" text="Uždaryti" />
+                  <Button layoutX="511.0" layoutY="91.0" mnemonicParsing="false" prefWidth="80.0" text="Pagalba" />
                   <Label fx:id="errorLabel" layoutX="35.0" layoutY="233.0" prefHeight="17.0" prefWidth="734.0" textFill="RED" />
                   <Label fx:id="sizeLabel" alignment="CENTER" contentDisplay="CENTER" layoutX="79.0" layoutY="94.0" prefHeight="38.0" prefWidth="125.0" text="10X10" textAlignment="CENTER">
                      <font>

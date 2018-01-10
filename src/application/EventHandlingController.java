@@ -21,6 +21,7 @@ import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
+import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.Slider;
 import javafx.scene.control.TextArea;
@@ -65,10 +66,10 @@ public class EventHandlingController {
     private CheckBox shuffleAnswerCheckBox;
     @FXML
     private CheckBox colorizeLettersCheckBox;
+    @FXML
+    private Canvas problemCanvas;
     
     private final static int TILE_SIZE = 30;
-    
-    private Thread gridThread;
     
     private List<String> words;
     private boolean randomLetters;
@@ -79,7 +80,7 @@ public class EventHandlingController {
     private int gridSize;
     private int insertedLettersSize;
     private String answer;
-    
+    private int descriptionTiles;
     private boolean shutdown;
     public static String newLine = System.getProperty("line.separator");
     /**
@@ -94,6 +95,7 @@ public class EventHandlingController {
         randomLetters = false;
         coloredAnswer = false;
         shutdown = false;
+        descriptionTiles = 0;
     }
     
     @FXML
@@ -138,7 +140,6 @@ public class EventHandlingController {
     
     
     private void calculateGrid() {
-        int descriptionTiles = 0;
         //xSize slider corresponds to - how many columns and ySize slider - how many rows
         WordConfig config = new WordConfig(ySize,xSize,descriptionTiles);
         RunGenerator gridGenerator = new RunGenerator(config, words, answer);
@@ -159,15 +160,19 @@ public class EventHandlingController {
         Group root = new Group();
         GraphicsContext gc = answerCanvas.getGraphicsContext2D();
         gc.clearRect(0, 0, answerCanvas.getWidth(), answerCanvas.getHeight());
-        drawShapes(gc, grid, answerCanvas, true);
+        drawShapes(gc, grid, answerCanvas, true, false);
         
         GraphicsContext vc = viewCanvas.getGraphicsContext2D();
         vc.clearRect(0, 0, viewCanvas.getWidth(), viewCanvas.getHeight());
-        drawShapes(vc, grid, viewCanvas, false);
+        drawShapes(vc, grid, viewCanvas, false, false);
+        
+        GraphicsContext pc = problemCanvas.getGraphicsContext2D();
+        pc.clearRect(0, 0, problemCanvas.getWidth(), problemCanvas.getHeight());
+        drawShapes(pc, grid, problemCanvas, true, true);
     }
     
     
-    private void drawShapes(GraphicsContext gc,Grid gridObj, Canvas canvas, boolean writeText) {
+    private void drawShapes(GraphicsContext gc,Grid gridObj, Canvas canvas, boolean writeText, boolean isProblemCanvas) {
         int cellSize = TILE_SIZE; // Default cell size
         
         Cell[][] grid = gridObj.getGrid();
@@ -224,7 +229,7 @@ public class EventHandlingController {
                 double xBottomLeftCorner = leftPadding + (j * cellSize);
                 double yBottomLeftCorner = topPadding + ((i+1) * cellSize);
                 if (grid[i][j].getLetter() == '\0' ) {
-                    if(coloredAnswer) {
+                    if(coloredAnswer && !isProblemCanvas) {
                         gc.setFill(Color.RED);
                     }
                     if (writeText)
@@ -236,41 +241,43 @@ public class EventHandlingController {
                     if (writeText)
                         gc.fillText( letter, leftPadding + (j * cellSize) + gapToLetter, topPadding + ((i+1) * cellSize) - gapToLetter);
                     //Draw line over text
-                    int direction = grid[i][j].getNextDirection();
-                    //Need to find middle of the cell to know where to draw line from
-                    double xStartLine = xBottomLeftCorner + 0.5 * cellSize;
-                    double yStartLine = yBottomLeftCorner - 0.5 * cellSize;
-                    
-                    double xEndLine = 0;
-                    double yEndLine = 0;
-                    
-                    switch (direction) {
-                    case 1: 
-                        yEndLine = yStartLine;
-                        xEndLine = xStartLine + cellSize;
-                        break;
-                    case 2:
-                        yEndLine = yStartLine + cellSize;
-                        xEndLine = xStartLine;
-                        break;
-                    case -3:
-                        yEndLine = yStartLine;
-                        xEndLine = xStartLine - cellSize;
-                        break;
-                    case -4:
-                        yEndLine = yStartLine - cellSize;
-                        xEndLine = xStartLine;
-                        break;
-                    default:    
-                        yEndLine = yStartLine;
-                        xEndLine = xStartLine;
+                    if (!isProblemCanvas) {
+                        int direction = grid[i][j].getNextDirection();
+                        //Need to find middle of the cell to know where to draw line from
+                        double xStartLine = xBottomLeftCorner + 0.5 * cellSize;
+                        double yStartLine = yBottomLeftCorner - 0.5 * cellSize;
+                        
+                        double xEndLine = 0;
+                        double yEndLine = 0;
+                        
+                        switch (direction) {
+                        case 1: 
+                            yEndLine = yStartLine;
+                            xEndLine = xStartLine + cellSize;
+                            break;
+                        case 2:
+                            yEndLine = yStartLine + cellSize;
+                            xEndLine = xStartLine;
+                            break;
+                        case -3:
+                            yEndLine = yStartLine;
+                            xEndLine = xStartLine - cellSize;
+                            break;
+                        case -4:
+                            yEndLine = yStartLine - cellSize;
+                            xEndLine = xStartLine;
+                            break;
+                        default:    
+                            yEndLine = yStartLine;
+                            xEndLine = xStartLine;
+                        }
+                        gc.setLineWidth(5);
+                        //Transparency
+                        gc.setGlobalAlpha(0.2f);
+                        gc.strokeLine(xStartLine, yStartLine, xEndLine, yEndLine);
+                        gc.setLineWidth(1);
+                        gc.setGlobalAlpha(1f);
                     }
-                    gc.setLineWidth(5);
-                    //Transparency
-                    gc.setGlobalAlpha(0.2f);
-                    gc.strokeLine(xStartLine, yStartLine, xEndLine, yEndLine);
-                    gc.setLineWidth(1);
-                    gc.setGlobalAlpha(1f);
                 }
                 
             }
@@ -281,7 +288,7 @@ public class EventHandlingController {
         
         
     }
-    
+
     private void shuffleAnswerCheckBoxAction() {
         shuffleAnswerCheckBox.selectedProperty().addListener(new ChangeListener<Boolean>() {
             public void changed(ObservableValue<? extends Boolean> ov,
@@ -336,7 +343,7 @@ public class EventHandlingController {
         answerTextField.textProperty().addListener(new ChangeListener<String>() {
             @Override
             public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
-                answer = answerTextField.getText();
+                answer = answerTextField.getText().replaceAll("\\s","");
                 setErrorAnswerLabelValue();
                     
             }
@@ -351,8 +358,8 @@ public class EventHandlingController {
                 
                 
                 
-                String inputText = inputWordTextArea.getText();
-                String cleanString = inputText.replaceAll("\r", "").replaceAll("\n", "");
+                String inputText = inputWordTextArea.getText().replaceAll("\\s+","");
+                String cleanString = inputText.replaceAll("\r", "").replaceAll("\n\\s+", "");
                 insertedLettersSize = cleanString.length();
                 setErrorAnswerLabelValue();
                     
@@ -418,7 +425,7 @@ public class EventHandlingController {
         }
         
         for (String w : wordsArr) {
-            words.add(w.trim());
+            words.add(w.trim().replaceAll("\\s+",""));
         }
         
         return words;
