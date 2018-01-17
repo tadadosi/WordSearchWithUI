@@ -72,8 +72,8 @@
                      </tabs>
                   </TabPane>
                   <Button fx:id="generateButton" layoutX="511.0" layoutY="50.0" mnemonicParsing="false" prefWidth="80.0" text="Generuoti" AnchorPane.topAnchor="50.0" />
-                  <Slider fx:id="horizontalSlider" layoutX="74.0" layoutY="183.0" majorTickUnit="10.0" max="15.0" minorTickCount="5" showTickLabels="true" showTickMarks="true" value="10.0" />
-                  <Slider fx:id="verticalSlider" layoutX="35.0" layoutY="50.0" majorTickUnit="10.0" max="15.0" minorTickCount="5" nodeOrientation="RIGHT_TO_LEFT" orientation="VERTICAL" showTickLabels="true" showTickMarks="true" value="10.0" />
+                  <Slider fx:id="horizontalSlider" layoutX="74.0" layoutY="183.0" majorTickUnit="10.0" max="30.0" minorTickCount="5" showTickLabels="true" showTickMarks="true" value="10.0" />
+                  <Slider fx:id="verticalSlider" layoutX="35.0" layoutY="50.0" majorTickUnit="10.0" max="30.0" minorTickCount="5" nodeOrientation="RIGHT_TO_LEFT" orientation="VERTICAL" showTickLabels="true" showTickMarks="true" value="10.0" />
                   <TextField fx:id="answerTextField" layoutX="263.0" layoutY="50.0" prefHeight="25.0" prefWidth="190.0" />
                   <Label fx:id="errorAnswerLabel" layoutX="263.0" layoutY="144.0" prefHeight="17.0" prefWidth="102.0" textFill="RED" />
                   <CheckBox fx:id="shuffleAnswerCheckBox" layoutX="263.0" layoutY="86.0" mnemonicParsing="false" text="Išmetytos rakto raidės (random)" />

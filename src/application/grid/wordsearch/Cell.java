@@ -5,16 +5,17 @@ public class Cell {
 	private char letter;
 	private int areaId;
 	private int nextDirection;
-	private int lastDirection;
+	private boolean sameDirection;
 	
 	public Cell() {
+	    sameDirection = true;
 	}
 	public Cell(Cell other) {
 		this.id = other.id;
 		this.letter = other.letter;
 		this.areaId = other.areaId;
 		this.nextDirection = other.nextDirection;
-		this.lastDirection = other.lastDirection;
+		this.sameDirection = other.sameDirection;
 	}
 	
 	public int getId() {
@@ -43,14 +44,14 @@ public class Cell {
     public int getNextDirection() {
         return nextDirection;
     }
-    public int getLastDirection() {
-        return lastDirection;
-    }
     public void setNextDirection(int nextDirection) {
         this.nextDirection = nextDirection;
     }
-    public void setLastDirection(int lastDirection) {
-        this.lastDirection = lastDirection;
+    public boolean isSameDirection() {
+        return sameDirection;
     }
-	
+    public void setSameDirection(boolean sameDirection) {
+        this.sameDirection = sameDirection;
+    }
+    
 }

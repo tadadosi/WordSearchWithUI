@@ -81,7 +81,6 @@ public class EventHandlingController {
     private int insertedLettersSize;
     private String answer;
     private int descriptionTiles;
-    private boolean shutdown;
     public static String newLine = System.getProperty("line.separator");
     /**
      * The constructor (is called before the initialize()-method).
@@ -94,7 +93,6 @@ public class EventHandlingController {
         answer = "";
         randomLetters = false;
         coloredAnswer = false;
-        shutdown = false;
         descriptionTiles = 0;
     }
     
@@ -102,7 +100,6 @@ public class EventHandlingController {
     private void initialize()  {
         setErrorAnswerLabelValue();
         stopButton.setDisable(true);
-        
         generateButtonAction();
         getHorizontalSlidersParameter();
         getVerticalSlidersParameter();
@@ -113,6 +110,7 @@ public class EventHandlingController {
         saveWordsButtonAction();
         shuffleAnswerCheckBoxAction();
         colorizeLettersCheckBoxAction();
+        
     }
     
     
@@ -120,12 +118,11 @@ public class EventHandlingController {
         generateButton.setOnAction((event) -> {
             resetError();
             getWordsFromTextArea();
-            
+            handleWarn("Generuoja...");
             int totalLetters = answer.length() + insertedLettersSize;
             if (totalLetters != gridSize) {
                 handleError("Ávestas neteisingas raidþiø skaièius!");
             } else {
-                shutdown = false;
                 generateButton.setDisable(true);
                 stopButton.setDisable(false);
 //                gridThread = new Thread(() -> calculateGrid());
@@ -143,7 +140,7 @@ public class EventHandlingController {
         //xSize slider corresponds to - how many columns and ySize slider - how many rows
         WordConfig config = new WordConfig(ySize,xSize,descriptionTiles);
         RunGenerator gridGenerator = new RunGenerator(config, words, answer);
-        Grid gridObj = null; 
+        Grid gridObj = null;
         try {
             gridObj = gridGenerator.run();
             drawGrid(gridObj);
@@ -157,7 +154,6 @@ public class EventHandlingController {
     
     
     private void drawGrid(Grid grid) {
-        Group root = new Group();
         GraphicsContext gc = answerCanvas.getGraphicsContext2D();
         gc.clearRect(0, 0, answerCanvas.getWidth(), answerCanvas.getHeight());
         drawShapes(gc, grid, answerCanvas, true, false);
@@ -175,6 +171,11 @@ public class EventHandlingController {
     private void drawShapes(GraphicsContext gc,Grid gridObj, Canvas canvas, boolean writeText, boolean isProblemCanvas) {
         int cellSize = TILE_SIZE; // Default cell size
         
+        if (ySize > 15) {
+            cellSize = cellSize * 15 / ySize;
+        } else if (xSize > 26) {
+            cellSize = cellSize * 26 / xSize; 
+        }
         Cell[][] grid = gridObj.getGrid();
         
         int colN = grid[0].length;
@@ -232,9 +233,9 @@ public class EventHandlingController {
                     if(coloredAnswer && !isProblemCanvas) {
                         gc.setFill(Color.RED);
                     }
-                    if (writeText)
+                    if (writeText) {
                         gc.fillText( Character.toString(answerToWrite.charAt(answerCounter)), xBottomLeftCorner + gapToLetter, yBottomLeftCorner - gapToLetter);
-                    
+                    }
                     answerCounter++;
                     gc.setFill(Color.BLACK);
                 } else {
@@ -282,11 +283,6 @@ public class EventHandlingController {
                 
             }
         }
-        
-       
-        
-        
-        
     }
 
     private void shuffleAnswerCheckBoxAction() {
@@ -309,7 +305,6 @@ public class EventHandlingController {
     
     private void stopButtonAction() {
         stopButton.setOnAction((event) -> {
-            shutdown = true;
 //            gridThread.interrupt();
             
             generateButton.setDisable(false);
@@ -441,6 +436,10 @@ public class EventHandlingController {
         errorLabel.setText(err);
     }
     
+    private void handleWarn(String err) {
+        errorLabel.setTextFill(Color.YELLOW);
+        errorLabel.setText(err);
+    }
     
     private void resetError() {
         errorLabel.setText("");

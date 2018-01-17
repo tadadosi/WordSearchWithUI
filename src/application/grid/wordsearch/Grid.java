@@ -139,9 +139,18 @@ public class Grid{
         grid[coord[0]][coord[1]].setNextDirection(direction);
     }
 	
-	public void setLastDirection(int[] coord, int direction) {
-        grid[coord[0]][coord[1]].setLastDirection(direction);
+	
+	public boolean isSameDirection(int[] coord, int direction) {
+        if (grid[coord[0]][coord[1]].getNextDirection() == direction && grid[coord[0]][coord[1]].isSameDirection()) {
+            return true;
+        }
+        return false;
     }
+	
+    public void setSameDirection(int[] coord, boolean isSameDirection) {
+        grid[coord[0]][coord[1]].setSameDirection(isSameDirection);
+    }
+	
 	
 	// check which direction you can snake
 	public List<Integer> determineDirection(int[] coord) {
@@ -174,6 +183,19 @@ public class Grid{
 		return coordList;
 	}
 	
+	public List<int[]> allCoords() {
+	    List<int[]> coordList = new ArrayList<int[]>();
+        for (int row = 0; row < grid.length; row++) {
+            for (int col = 0; col < grid[0].length; col++) {
+                if( grid[row][col].getLetter() == '\0') {
+                    int[] coord = {row, col};
+                    coordList.add(coord);
+                }
+            }
+        }
+        return coordList;
+    }
+	
 	public List<int[]> coordByEmpty() {
 		List<int[]> coordList = new ArrayList<int[]>();
 		for (int row = 0; row < grid.length; row++) {
@@ -194,5 +216,4 @@ public class Grid{
 	public void setGrid(Cell[][] grid) {
 		this.grid = grid;
 	}
-	
 }
