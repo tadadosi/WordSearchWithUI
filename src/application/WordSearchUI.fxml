@@ -25,11 +25,9 @@
                      <tabs>
                         <Tab closable="false" text="Žodziai">
                            <content>
-                              <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="297.0" prefWidth="632.0">
+                              <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="297.0" prefWidth="787.0">
                                  <children>
-                                    <TextArea fx:id="inputWordTextArea" layoutX="26.0" layoutY="71.0" prefHeight="328.0" prefWidth="276.0" />
-                                    <Label layoutX="26.0" layoutY="34.0" text="Žodžiai (atskirkite vieną žodį nuo kito nauja eilute)" />
-                                    <Button fx:id="saveWordsButton" layoutX="20.0" layoutY="424.0" mnemonicParsing="false" prefHeight="25.0" prefWidth="287.0" text="Saugoti i tekstinį formatą" />
+                                    <TextArea fx:id="inputWordTextArea" layoutX="26.0" layoutY="3.0" prefHeight="470.0" prefWidth="296.0" />
                                  </children>
                               </AnchorPane>
                            </content>
@@ -71,7 +69,7 @@
                         </Tab>
                      </tabs>
                   </TabPane>
-                  <Button fx:id="generateButton" layoutX="511.0" layoutY="50.0" mnemonicParsing="false" prefWidth="80.0" text="Generuoti" AnchorPane.topAnchor="50.0" />
+                  <Button fx:id="generateButton" layoutX="511.0" layoutY="50.0" mnemonicParsing="false" prefHeight="25.0" prefWidth="113.0" text="Generuoti" AnchorPane.topAnchor="50.0" />
                   <Slider fx:id="horizontalSlider" layoutX="74.0" layoutY="183.0" majorTickUnit="10.0" max="30.0" minorTickCount="5" showTickLabels="true" showTickMarks="true" value="10.0" />
                   <Slider fx:id="verticalSlider" layoutX="35.0" layoutY="50.0" majorTickUnit="10.0" max="30.0" minorTickCount="5" nodeOrientation="RIGHT_TO_LEFT" orientation="VERTICAL" showTickLabels="true" showTickMarks="true" value="10.0" />
                   <TextField fx:id="answerTextField" layoutX="263.0" layoutY="50.0" prefHeight="25.0" prefWidth="190.0" />
@@ -83,8 +81,8 @@
                         <Font size="14.0" />
                      </font></Label>
                   <Button fx:id="stopButton" layoutX="659.0" layoutY="209.0" mnemonicParsing="false" prefWidth="80.0" text="Stabdyti" visible="false" />
-                  <Button fx:id="closeButton" layoutX="511.0" layoutY="132.0" mnemonicParsing="false" prefWidth="80.0" text="Uždaryti" />
-                  <Button layoutX="511.0" layoutY="91.0" mnemonicParsing="false" prefWidth="80.0" text="Pagalba" />
+                  <Button fx:id="closeButton" layoutX="511.0" layoutY="178.0" mnemonicParsing="false" prefHeight="25.0" prefWidth="113.0" text="Uždaryti" />
+                  <Button layoutX="511.0" layoutY="91.0" mnemonicParsing="false" prefHeight="25.0" prefWidth="113.0" text="Pagalba" />
                   <Label fx:id="errorLabel" layoutX="35.0" layoutY="233.0" prefHeight="17.0" prefWidth="734.0" textFill="RED" />
                   <Label fx:id="sizeLabel" alignment="CENTER" contentDisplay="CENTER" layoutX="79.0" layoutY="94.0" prefHeight="38.0" prefWidth="125.0" text="10X10" textAlignment="CENTER">
                      <font>
@@ -106,6 +104,9 @@
                         <Font size="14.0" />
                      </font>
                   </Label>
+                  <Button fx:id="saveWordsButton" layoutX="511.0" layoutY="132.0" mnemonicParsing="false" prefHeight="25.0" prefWidth="113.0" text="Išsaugoti žodžius" />
+                  <Label layoutX="263.0" layoutY="182.0" prefHeight="17.0" prefWidth="113.0" text="Raktinio žodžio ilgis:" />
+                  <Label fx:id="answerSizeLabel" layoutX="382.0" layoutY="182.0" prefHeight="17.0" prefWidth="88.0" />
                </children>
             </AnchorPane>
          </children>

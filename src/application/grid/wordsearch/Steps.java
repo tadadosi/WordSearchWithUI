@@ -14,6 +14,7 @@ public class Steps {
     GridWithWord tempGrid;
     GridWithWord lastGrid;
     
+    public static final char DESCR_SYMBOL = '#';
     
 	public Steps(Grid gridObj, String word, int[] coord) {
         this.gridObj = gridObj;
@@ -28,7 +29,23 @@ public class Steps {
 		
 		// First add current situation
 		lastGrid = new GridWithWord(grid, word, new CoordWithUnusedDir(goodDirection, coord));
+		
+		char firstLetter = word.charAt(0);
+		
+		if (firstLetter == '1' || firstLetter == '2' || firstLetter == '3' || firstLetter == '4') {
+		    lastGrid = addAllDescriptionCells(Character.getNumericValue(firstLetter));
+		    word = word.length() > 1 ? word.substring(1) : "";
+		}
+		
+		if (lastGrid == null)
+		    return null;
+		
 		tempGridList.add(lastGrid);
+		
+		for (CoordWithUnusedDir possibleStart : lastGrid.getCellsUnusedDirections()) {
+		    
+		}
+		
 		
 		for (int i = 0; i < word.length(); i++) {
 			// if we removed all tempGridList that means there is no way to add word
@@ -62,11 +79,6 @@ public class Steps {
 			
 		}
 		
-//		for (GridWithWord temp : tempGridList) {
-//			temp.getGrid().printGrid();
-//		}
-		
-		
 		return tempGridList.get(tempGridList.size() - 1);
 	}
 
@@ -87,6 +99,8 @@ public class Steps {
 			return null; // There is no possibile solution from this point
 		}
 		
+		
+		//Do not allow word to go straight line. If word is straight in last letter and there is no other option we return null to roll back
 		if (word.equals(tempWord)) {
 		    grid.setSameDirection(coord, true);
 		    firstLetter = true;
@@ -124,11 +138,8 @@ public class Steps {
 		    grid.setNextDirection(coord, goodDirection);
 		}
 		    
-		
-		
 		// Now lets remove first letter from word since we already written it
 		tempWord = tempWord.length() > 1 ? tempWord.substring(1) : "";
-//		grid.printGrid();
 		List<Integer> nextUnusedDirections = grid.determineDirection(coord);
 		
 		
@@ -176,31 +187,200 @@ public class Steps {
         coord[1] += goodDirection % 2;
 	}
 	
-	// private static GridWithWord addFirstLetter(GridWithWord lastStepGridObj) {
-//  GridWithWord lastStepGrid = new GridWithWord(lastStepGridObj);
-//    
-//  int[] coord = lastStepGrid.getCurrentCoord();
-//    Grid grid = lastStepGrid.getGrid();
-//    String word = lastStepGrid.getWordToWrite();
-//
-//    char letter = word.charAt(0);
-//    
-//    switch (letter) {
-//    case '1' : 
-//        //enter 1 empty cell in grid
-//        break;
-//    case '2' :
-//      //enter 2 empty cell in grid
-//        break;
-//    case '3' :
-//      //enter 3 empty cell in grid
-//        break;
-//    case '4' :
-//      //enter 4 empty cell in grid
-//        break;
-//    default: break;
-//    }
-//    List<Integer> nextUnusedDirections = grid.determineDirection(coord);
-//    return new GridWithWord(grid, word, new CoordWithUnusedDir(nextUnusedDirections, coord));
-//}
+    private GridWithWord addAllDescriptionCells(int numberOfCells) {
+        coord[0] = lastGrid.getCurrentCoord()[0];
+        coord[1] = lastGrid.getCurrentCoord()[1];
+        GridWithWord resultGrid;
+     // enter 1 empty cell in grid
+        if ("1".equals(numberOfCells)) {
+            resultGrid = addOneDescriptionCell(lastGrid.getGrid());
+         // enter 2 empty cell in grid  
+        } else {
+            resultGrid = addDescriptionXCells(lastGrid.getGrid(), numberOfCells);
+        }
+        return resultGrid;
+    }
+    
+    private GridWithWord addOneDescriptionCell(Grid grid) {
+        List<CoordWithUnusedDir> nextUnusedCoords = new ArrayList<>();
+        Grid tempGrid = new Grid(lastGrid.getGrid());
+        tempGrid.setLetter(coord, '#');
+        List<Integer> unusedDirections = tempGrid.determineDirectionWithoutZero(coord);
+        
+        if (unusedDirections.size() == 0)
+            return null;
+                    
+        nextUnusedCoords.add(new CoordWithUnusedDir(unusedDirections, coord));
+        return new GridWithWord(tempGrid, word, nextUnusedCoords);
+    }
+    
+    //Cell number possible: 2, 3 , 4
+    private GridWithWord addDescriptionXCells(Grid grid, int cellNumber) {
+        List<CoordWithUnusedDir> nextUnusedCoords = new ArrayList<>();
+        Grid tempGrid = new Grid(lastGrid.getGrid());
+        List<DescrDirections> posibilitiesTree = new ArrayList<>();
+        
+        switch (cellNumber) {
+            case 2:
+                posibilitiesTree = findViableRoutes2Cells(tempGrid, coord);
+                break;
+            case 3:
+                posibilitiesTree = findViableRoutes3Cells(tempGrid, coord);
+                break;
+            case 4:
+                posibilitiesTree = findViableRoutes4Cells(tempGrid, coord);
+                break;    
+            default:
+                break;
+        }
+        
+        
+        if (posibilitiesTree.size() == 0)
+            return null;
+        
+        for (DescrDirections treeBranch : posibilitiesTree) {
+            List<Integer> directions = treeBranch.getDirectionsPossibility();
+            Grid tempGrid1 = new Grid(tempGrid);
+            List<CoordWithUnusedDir> tempUnusedDir = new ArrayList<>();
+            
+            int[] tempCoord = new int[2];
+            tempCoord[0] = coord[0];
+            tempCoord[1] = coord[1];
+            
+            
+            //First we need to add description cell symbol '#' to root cell and every cell of directions
+            
+            //Add to root cell
+            tempGrid1.setLetter(tempCoord, '#');
+            //Now add to all directions also
+            for (Integer d : directions) {
+                tempCoord[0] += (d + 1) % 2;
+                tempCoord[1] += d % 2;
+                tempGrid1.setLetter(tempCoord, '#');
+            }
+            
+            //Now lets reset coords and Calculate unused directions and see if there are any possibilities
+            tempCoord[0] = coord[0];
+            tempCoord[1] = coord[1];
+            addUnusedDirIfAvailable(tempGrid1, tempCoord, tempUnusedDir);
+            
+            for (Integer d : directions) {
+                tempCoord[0] += (d + 1) % 2;
+                tempCoord[1] += d % 2;
+                addUnusedDirIfAvailable(tempGrid1, tempCoord, tempUnusedDir);
+            }
+            
+            if (!tempUnusedDir.isEmpty()) {
+                tempGrid = tempGrid1;
+                nextUnusedCoords = tempUnusedDir;
+                break;
+            }
+            
+        }
+        
+        if (nextUnusedCoords.isEmpty())
+            return null;
+                    
+        return new GridWithWord(tempGrid, word, nextUnusedCoords);
+    }
+    
+   private void  addUnusedDirIfAvailable(Grid tempGrid, int[] tempCoord, List<CoordWithUnusedDir> tempUnusedDir) {
+       List<Integer> unusedDirectionsTemp;
+       unusedDirectionsTemp = tempGrid.determineDirectionWithoutZero(tempCoord);
+       if (!unusedDirectionsTemp.isEmpty()) {
+           tempUnusedDir.add(new CoordWithUnusedDir(unusedDirectionsTemp, tempCoord));
+       }
+   }
+    
+    
+    private List<DescrDirections> findViableRoutes2Cells(Grid grid, int[] coords) {
+        List<DescrDirections> resulTreeList = new ArrayList<>();
+
+        // L direction
+        if (grid.isLeftLeftValid(coords)) {
+            List<Integer> lTree = new ArrayList<>();
+            lTree.add(-3);
+            resulTreeList.add(new DescrDirections(lTree));
+        }
+        // R direction
+        if (grid.isLeftLeftValid(coords)) {
+            List<Integer> rTree = new ArrayList<>();
+            rTree.add(1);
+            resulTreeList.add(new DescrDirections(rTree));
+        }
+        return resulTreeList;
+    }
+    
+    private List<DescrDirections> findViableRoutes3Cells(Grid grid, int[] coords) {
+        // There are 2 possible scenarios for 3 description cells:
+        // L - left, R - right, U - up, D - down then possibilities is
+        // LL, RR . Lets check each of these seperatly without
+        // counting unused direction (will do later)
+        // Direction wise it would look like : (-3, -3) , (1, 1)
+        List<DescrDirections> resulTreeList = new ArrayList<>();
+        
+        // LL direction
+        if (grid.isLeftLeftValid(coords)) {
+            List<Integer> llTree = new ArrayList<>();
+            llTree.add(-3);
+            llTree.add(-3);
+            resulTreeList.add(new DescrDirections(llTree));
+        }
+
+        // RR direction
+        if (grid.isRightRightValid(coords)) {
+            List<Integer> rrTree = new ArrayList<>();
+            rrTree.add(1);
+            rrTree.add(1);
+            resulTreeList.add(new DescrDirections(rrTree));
+        }
+        
+        return resulTreeList;
+    }
+    
+    private List<DescrDirections> findViableRoutes4Cells(Grid grid, int[] coords) {
+        //There are 4 possible scenarios for 4 description cells:
+        // L - left, R - right, U - up, D - down then possibilities is
+        // LUR, LDR, RUL, RDL . Lets check each of these seperatly without counting unused direction (will do later)
+        // Direction wise it would look like : (-3, -4, 1) , (-3, 2, 1), (1, 2, -3), (1, -4, -3)
+        List<DescrDirections> resulTreeList = new ArrayList<>();
+        
+        //LUR direction
+        if (grid.isLURTreeValid(coords)) {
+            List<Integer> lurTree = new ArrayList<>();
+            lurTree.add(-3);
+            lurTree.add(-4);
+            lurTree.add(1);
+            resulTreeList.add(new DescrDirections(lurTree));
+        }
+        
+        // LDR direction
+        if (grid.isLDRTreeValid(coords)) {
+            List<Integer> ldrTree = new ArrayList<>();
+            ldrTree.add(-3);
+            ldrTree.add(2);
+            ldrTree.add(1);
+            resulTreeList.add(new DescrDirections(ldrTree));
+        }
+
+        // RUL direction
+        if (grid.isLDRTreeValid(coords)) {
+            List<Integer> rulTree = new ArrayList<>();
+            rulTree.add(1);
+            rulTree.add(2);
+            rulTree.add(-3);
+            resulTreeList.add(new DescrDirections(rulTree));
+        }
+        
+     // RDL direction
+        if (grid.isLDRTreeValid(coords)) {
+            List<Integer> rdlTree = new ArrayList<>();
+            rdlTree.add(1);
+            rdlTree.add(-4);
+            rdlTree.add(-3);
+            resulTreeList.add(new DescrDirections(rdlTree));
+        }
+        return resulTreeList;
+    }
+    
 }

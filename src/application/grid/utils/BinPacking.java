@@ -1,6 +1,5 @@
 package application.grid.utils;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class BinPacking {

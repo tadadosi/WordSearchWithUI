@@ -6,6 +6,8 @@ public class Cell {
 	private int areaId;
 	private int nextDirection;
 	private boolean sameDirection;
+	private int wordStartDirection;
+	
 	
 	public Cell() {
 	    sameDirection = true;
@@ -52,6 +54,12 @@ public class Cell {
     }
     public void setSameDirection(boolean sameDirection) {
         this.sameDirection = sameDirection;
+    }
+    public int getWordStartDirection() {
+        return wordStartDirection;
+    }
+    public void setWordStartDirection(int wordStartDirection) {
+        this.wordStartDirection = wordStartDirection;
     }
     
 }

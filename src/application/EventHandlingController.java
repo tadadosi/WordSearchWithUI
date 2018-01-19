@@ -16,12 +16,10 @@ import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.fxml.FXML;
 import javafx.geometry.VPos;
-import javafx.scene.Group;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
-import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.Slider;
 import javafx.scene.control.TextArea;
@@ -52,6 +50,8 @@ public class EventHandlingController {
     private Label errorAnswerLabel;
     @FXML
     private Label sizeLabel;
+    @FXML
+    private Label answerSizeLabel;
     @FXML
     private Slider verticalSlider;
     @FXML
@@ -99,6 +99,7 @@ public class EventHandlingController {
     @FXML
     private void initialize()  {
         setErrorAnswerLabelValue();
+        setAnswerLenLabel();
         stopButton.setDisable(true);
         generateButtonAction();
         getHorizontalSlidersParameter();
@@ -110,6 +111,8 @@ public class EventHandlingController {
         saveWordsButtonAction();
         shuffleAnswerCheckBoxAction();
         colorizeLettersCheckBoxAction();
+        
+        answerSizeLabel.setText(new Integer(answer.length()).toString());
         
     }
     
@@ -339,8 +342,8 @@ public class EventHandlingController {
             @Override
             public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
                 answer = answerTextField.getText().replaceAll("\\s","");
+                setAnswerLenLabel();
                 setErrorAnswerLabelValue();
-                    
             }
         }); 
         
@@ -350,9 +353,6 @@ public class EventHandlingController {
         inputWordTextArea.textProperty().addListener(new ChangeListener<Object>() {
             @Override
             public void changed(ObservableValue<?> observable, Object oldValue, Object newValue) {
-                
-                
-                
                 String inputText = inputWordTextArea.getText().replaceAll("\\s+","");
                 String cleanString = inputText.replaceAll("\r", "").replaceAll("\n\\s+", "");
                 insertedLettersSize = cleanString.length();
@@ -397,9 +397,9 @@ public class EventHandlingController {
         errorAnswerLabel.setText((totalLetters) + "/" + gridSize);
         
         if (totalLetters != gridSize) {
-            errorAnswerLabel.setTextFill(Color.web("#FF0000"));
+            errorAnswerLabel.setTextFill(Color.RED);
         } else {
-            errorAnswerLabel.setTextFill(Color.web("#000000"));
+            errorAnswerLabel.setTextFill(Color.GREEN);
         }
     }
     
@@ -458,5 +458,8 @@ public class EventHandlingController {
         }
         writer.close();
     }
-    
+    private void setAnswerLenLabel() {
+        answerSizeLabel.setText(new Integer(answer.length()).toString());
+        answerSizeLabel.setTextFill(Color.GREEN);
+    }
 }

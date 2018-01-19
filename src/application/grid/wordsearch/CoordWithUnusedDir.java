@@ -20,7 +20,9 @@ public class CoordWithUnusedDir {
     public CoordWithUnusedDir(List<Integer> unusedGoodDirections, int[] currentCoord) {
         super();
         this.unusedGoodDirection = unusedGoodDirections;
-        this.currentCoord = currentCoord;
+        this.currentCoord = new int[2];
+        this.currentCoord[0] = currentCoord[0];
+        this.currentCoord[1] = currentCoord[1];
     }
     
     public CoordWithUnusedDir(Integer unusedGoodDirection, int[] currentCoord) {
@@ -28,7 +30,9 @@ public class CoordWithUnusedDir {
         
         this.unusedGoodDirection = new ArrayList<Integer>();
         this.unusedGoodDirection.add(unusedGoodDirection);
-        this.currentCoord = currentCoord;
+        this.currentCoord = new int[2];
+        this.currentCoord[0] = currentCoord[0];
+        this.currentCoord[1] = currentCoord[1];
     }
 
     public List<Integer> getUnusedGoodDirection() {
@@ -46,8 +50,4 @@ public class CoordWithUnusedDir {
     public void setCurrentCoord(int[] currentCoord) {
         this.currentCoord = currentCoord;
     }
-    
-    
-    
-    
 }

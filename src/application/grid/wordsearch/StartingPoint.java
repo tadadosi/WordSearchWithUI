@@ -311,5 +311,4 @@ public class StartingPoint {
     public void setFinished(boolean isFinished) {
         this.isFinished = isFinished;
     }
-	
 }
