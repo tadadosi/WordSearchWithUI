@@ -24,6 +24,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.Slider;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
+import javafx.scene.effect.BlendMode;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.TextAlignment;
@@ -81,6 +82,8 @@ public class EventHandlingController {
     private int insertedLettersSize;
     private String answer;
     private int descriptionTiles;
+    int circleSize;
+    int lineWidth;
     public static String newLine = System.getProperty("line.separator");
     /**
      * The constructor (is called before the initialize()-method).
@@ -94,6 +97,8 @@ public class EventHandlingController {
         randomLetters = false;
         coloredAnswer = false;
         descriptionTiles = 0;
+        circleSize = 4;
+        lineWidth = 1;
     }
     
     @FXML
@@ -173,12 +178,19 @@ public class EventHandlingController {
     
     private void drawShapes(GraphicsContext gc,Grid gridObj, Canvas canvas, boolean writeText, boolean isProblemCanvas) {
         int cellSize = TILE_SIZE; // Default cell size
+        int newYCellSize = cellSize;
+        int newXCellSize = cellSize;
         
-        if (ySize > 15) {
-            cellSize = cellSize * 15 / ySize;
-        } else if (xSize > 26) {
-            cellSize = cellSize * 26 / xSize; 
+        if (ySize > 18) {
+            newYCellSize = cellSize * 18 / ySize;
+        } 
+        if (xSize > 26) {
+            newXCellSize = cellSize * 26 / xSize; 
         }
+        cellSize = Math.min(newYCellSize, newXCellSize);
+        
+        
+        
         Cell[][] grid = gridObj.getGrid();
         
         int colN = grid[0].length;
@@ -187,11 +199,11 @@ public class EventHandlingController {
         int gridWidth = colN * cellSize;
         int gridHeight = rowN * cellSize;
         
-        double leftPadding = (canvas.getWidth() - gridWidth)/2;
-        double topPadding = (canvas.getHeight() - gridHeight)/2;
+        double leftPadding = (int) ((canvas.getWidth() - gridWidth)/2);
+        int topPadding = (int) (canvas.getHeight() - gridHeight)/2;
         
         gc.setStroke(Color.BLACK);
-        gc.setLineWidth(1);
+        gc.setLineWidth(lineWidth);
         
         gc.strokeRect(leftPadding, topPadding, gridWidth, gridHeight);
         
@@ -241,6 +253,29 @@ public class EventHandlingController {
                     }
                     answerCounter++;
                     gc.setFill(Color.BLACK);
+                } else if (grid[i][j].getLetter() == '#'){
+                    gc.setFill(Color.WHITESMOKE);
+                    gc.fillRect(xBottomLeftCorner + lineWidth,yBottomLeftCorner - cellSize + lineWidth,cellSize - 2*lineWidth,cellSize - 2*lineWidth);
+                    gc.setFill(Color.BLACK);
+                    if (grid[i][j].getWordStartDirection() != 0) {
+                        switch (grid[i][j].getWordStartDirection()) {
+                        case 1:
+                            gc.fillOval(xBottomLeftCorner + cellSize - circleSize/2, yBottomLeftCorner - cellSize/2 - circleSize/2, 5, 5);
+                            break;
+                        case 2:
+                            gc.fillOval(xBottomLeftCorner + cellSize/2 - circleSize/2, yBottomLeftCorner - circleSize/2, 5, 5);
+                            break;
+                        case -3:
+                            gc.fillOval(xBottomLeftCorner - circleSize/2, yBottomLeftCorner - cellSize/2 - circleSize/2, 5, 5);
+                            break;
+                        case -4:
+                            gc.fillOval(xBottomLeftCorner + cellSize/2 - circleSize/2, yBottomLeftCorner - cellSize - circleSize/2, 5, 5);
+                            break;
+                        default:
+                            break;
+                        }
+                    }
+                    eraseLines(gc, grid, i, j, xBottomLeftCorner, yBottomLeftCorner, cellSize);
                 } else {
                     if (writeText)
                         gc.fillText( letter, leftPadding + (j * cellSize) + gapToLetter, topPadding + ((i+1) * cellSize) - gapToLetter);
@@ -356,6 +391,24 @@ public class EventHandlingController {
                 String inputText = inputWordTextArea.getText().replaceAll("\\s+","");
                 String cleanString = inputText.replaceAll("\r", "").replaceAll("\n\\s+", "");
                 insertedLettersSize = cleanString.length();
+                //Lets check if there are any numbers which means this will be description empty cells, which take as many cells as number itself. Means we add +1 if its 2 and +2 if 3...
+                for (int i = 0; i < cleanString.length(); i++){
+                    char c = cleanString.charAt(i);
+                    switch (c) {
+                    case '2':
+                        insertedLettersSize++;
+                        break;
+                    case '3' :
+                        insertedLettersSize += 2;
+                        break;
+                    case '4' :
+                        insertedLettersSize += 3;
+                        break;
+                    default:
+                        break;
+                    }
+                }
+                
                 setErrorAnswerLabelValue();
                     
             }
@@ -437,7 +490,7 @@ public class EventHandlingController {
     }
     
     private void handleWarn(String err) {
-        errorLabel.setTextFill(Color.YELLOW);
+        errorLabel.setTextFill(Color.ORANGE);
         errorLabel.setText(err);
     }
     
@@ -461,5 +514,45 @@ public class EventHandlingController {
     private void setAnswerLenLabel() {
         answerSizeLabel.setText(new Integer(answer.length()).toString());
         answerSizeLabel.setTextFill(Color.GREEN);
+    }
+    
+    private void eraseLines(GraphicsContext gc, Cell[][] cells, int row, int col, double xBottomLeftCorner, double yBottomLeftCorner, double cellSize) {
+        if (cells[row][col].getLetter() != '#')
+            return;
+        int wordIndex = cells[row][col].getWordIndex();
+        boolean rightCellDescription = false;
+        boolean bottomCellDescription = false;
+        double xStart;
+        double xEnd;
+        double yStart;
+        double yEnd;
+        
+        gc.setStroke(Color.WHITESMOKE);
+        gc.setLineWidth(lineWidth*2);
+        if (col + 1 < cells[0].length && cells[row][col+1].getLetter() == '#' && cells[row][col+1].getWordIndex() == wordIndex) {
+            xStart = xBottomLeftCorner + cellSize + lineWidth/2;
+            xEnd = xBottomLeftCorner + cellSize + lineWidth/2;
+            yStart = yBottomLeftCorner - lineWidth*2;
+            yEnd = yBottomLeftCorner - cellSize + lineWidth*2;
+            gc.strokeLine(xStart, yStart, xEnd, yEnd);
+            rightCellDescription = true;
+        }
+        if (row + 1 < cells.length && cells[row+1][col].getLetter() == '#' && cells[row+1][col].getWordIndex() == wordIndex) {
+            xStart = xBottomLeftCorner + lineWidth*2;
+            xEnd = xBottomLeftCorner + cellSize - lineWidth*2;
+            yStart = yBottomLeftCorner;
+            yEnd = yBottomLeftCorner;
+            gc.strokeLine(xStart, yStart, xEnd, yEnd);
+            bottomCellDescription = true;
+        }
+        if (rightCellDescription && bottomCellDescription) {
+            xStart = xBottomLeftCorner + cellSize;
+            xEnd = xBottomLeftCorner + cellSize;
+            yStart = yBottomLeftCorner + lineWidth*2;
+            yEnd = yBottomLeftCorner;
+            gc.strokeLine(xStart, yStart, xEnd, yEnd);
+        }
+        gc.setLineWidth(lineWidth);
+        gc.setStroke(Color.BLACK);
     }
 }

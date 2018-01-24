@@ -7,10 +7,12 @@ public class Cell {
 	private int nextDirection;
 	private boolean sameDirection;
 	private int wordStartDirection;
+	private int wordIndex;
 	
 	
 	public Cell() {
 	    sameDirection = true;
+	    wordStartDirection = 0;
 	}
 	public Cell(Cell other) {
 		this.id = other.id;
@@ -18,6 +20,8 @@ public class Cell {
 		this.areaId = other.areaId;
 		this.nextDirection = other.nextDirection;
 		this.sameDirection = other.sameDirection;
+		this.wordStartDirection = other.wordStartDirection;
+		this.wordIndex = other.wordIndex;
 	}
 	
 	public int getId() {
@@ -61,5 +65,10 @@ public class Cell {
     public void setWordStartDirection(int wordStartDirection) {
         this.wordStartDirection = wordStartDirection;
     }
-    
+    public int getWordIndex() {
+        return wordIndex;
+    }
+    public void setWordIndex(int wordIndex) {
+        this.wordIndex = wordIndex;
+    }
 }

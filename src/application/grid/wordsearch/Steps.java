@@ -2,9 +2,8 @@
 package application.grid.wordsearch;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
-
-import com.sun.org.apache.bcel.internal.generic.NEWARRAY;
 
 public class Steps {
     
@@ -13,19 +12,19 @@ public class Steps {
     int[] coord;
     GridWithWord tempGrid;
     GridWithWord lastGrid;
+    int wordIndex;
     
     public static final char DESCR_SYMBOL = '#';
     
-	public Steps(Grid gridObj, String word, int[] coord) {
+	public Steps(Grid gridObj, String word, int[] coord, int wordIndex) {
         this.gridObj = gridObj;
         this.word = word;
         this.coord = coord;
-        
+        this.wordIndex = wordIndex;
     }
     public GridWithWord enterWordInGrid() {
 	    Grid grid = new Grid(gridObj);
 		List<Integer> goodDirection = grid.determineDirection(coord);
-		List<GridWithWord> tempGridList = new ArrayList<GridWithWord>();
 		
 		// First add current situation
 		lastGrid = new GridWithWord(grid, word, new CoordWithUnusedDir(goodDirection, coord));
@@ -35,65 +34,94 @@ public class Steps {
 		if (firstLetter == '1' || firstLetter == '2' || firstLetter == '3' || firstLetter == '4') {
 		    lastGrid = addAllDescriptionCells(Character.getNumericValue(firstLetter));
 		    word = word.length() > 1 ? word.substring(1) : "";
-		}
-		
-		if (lastGrid == null)
-		    return null;
-		
-		tempGridList.add(lastGrid);
-		
-		for (CoordWithUnusedDir possibleStart : lastGrid.getCellsUnusedDirections()) {
+		    if (lastGrid == null)
+	            return null;
+		    lastGrid.setWordToWrite(word);
+		    //For more randomize lets shuffle unused directions
+		    Collections.shuffle(lastGrid.getCellsUnusedDirections());
 		    
+	        for (CoordWithUnusedDir possibleStart : lastGrid.getCellsUnusedDirections()) {
+	            GridWithWord resultGrid = enterAllLetters(true);
+	            if (resultGrid != null)
+	                return resultGrid;
+	        }
+	        //If all possibilities well used and nothing return we return null
+	        return null;
 		}
 		
+		GridWithWord resultGrid = enterAllLetters(false);
+        return resultGrid;
 		
-		for (int i = 0; i < word.length(); i++) {
-			// if we removed all tempGridList that means there is no way to add word
-			if (tempGridList.size() == 0)
-				return null;
-
-			boolean added = false;
-			lastGrid = tempGridList.get(tempGridList.size() - 1);
-			List<Integer> lastUnusedDirections = lastGrid.getUnusedGoodDirection();
-
-			while (!added && lastUnusedDirections != null && lastUnusedDirections.size() > 0
-					&& lastUnusedDirections.get(0) != 0) {
-
-				// Lets construct new tree of possibilities
-			    tempGrid = moveOneStep();
-			    
-				// If there are at least 1 good direction and it is not last letter
-				if (tempGrid != null) {
-					tempGridList.add(tempGrid);
-					added = true;
-				}
-			}
-
-			if (!added) {
-				// Lets remove last grid because it is impossible to continue from this point
-				// and lets get one step back
-				tempGridList.remove(lastGrid);
-				
-				i = i - 2;
-			}
-			
-		}
-		
-		return tempGridList.get(tempGridList.size() - 1);
 	}
 
-	private GridWithWord moveOneStep() {
-	    coord[0] = lastGrid.getCurrentCoord()[0];
-	    coord[1] = lastGrid.getCurrentCoord()[1];
+    private GridWithWord enterAllLetters(boolean isAfterDescription) {
+        
+        GridWithWord lastTempGrid = new GridWithWord(lastGrid);
+        List<GridWithWord> tempGridList = new ArrayList<GridWithWord>();
+        tempGridList.add(lastTempGrid);
+        //TODO
+        for (int i = 0; i < word.length(); i++) {
+            // if we removed all tempGridList that means there is no way to add word
+            if (tempGridList.size() == 0)
+                return null;
+
+            boolean added = false;
+            lastTempGrid = tempGridList.get(tempGridList.size() - 1);
+            List<CoordWithUnusedDir> allCoords = lastTempGrid.getCellsUnusedDirections();
+            //For randomness;
+            Collections.shuffle(allCoords);
+            
+            if (allCoords == null || allCoords.isEmpty())
+                return null;
+            
+            int coordIndex = 0;
+            for (CoordWithUnusedDir c : allCoords) {
+                coordIndex++;
+                //Reset word start direction in case it was set earlier
+                while (!added && c.getUnusedGoodDirection() != null && c.getUnusedGoodDirection().size() > 0
+                        && c.getUnusedGoodDirection().get(0) != 0) {
+
+                    // Lets construct new tree of possibilities
+                    tempGrid = moveOneStep(lastTempGrid, c, isAfterDescription);
+
+                    // If there are at least 1 good direction and it is not last
+                    // letter
+                    if (tempGrid != null) {
+                        tempGridList.add(tempGrid);
+                        added = true;
+                    }
+                }
+                
+                if (!added) {
+                    // Lets remove last grid because it is impossible to
+                    // continue from this point
+                    // and lets get one step back
+                    if (coordIndex >= allCoords.size()) {
+                        tempGridList.remove(lastTempGrid);
+                        i = i - 2;
+                    }
+                } else {
+                    break;
+                }
+            }
+        }
+        
+        return tempGridList.get(tempGridList.size() - 1);
+    }
+    
+	private GridWithWord moveOneStep(GridWithWord lastTempGrid, CoordWithUnusedDir c, boolean isAfterDescription) {
+	    coord[0] = c.getCurrentCoord()[0];
+	    coord[1] = c.getCurrentCoord()[1];
 	    boolean firstLetter = false;
-		Grid grid = new GridWithWord(lastGrid).getGrid();
-		
+	    boolean sameDirection = true;
+		Grid grid = new GridWithWord(lastTempGrid).getGrid();
+		//TODO
 //	    System.out.print("START STEP ---------------------");
 //		grid.printGrid();
 		
-		String tempWord = lastGrid.getWordToWrite();
+		String tempWord = lastTempGrid.getWordToWrite();
 		
-		int goodDirection = findGoodDirection();
+		int goodDirection = findGoodDirection(c);
 		
 		if (goodDirection == 0) {
 			return null; // There is no possibile solution from this point
@@ -102,34 +130,41 @@ public class Steps {
 		
 		//Do not allow word to go straight line. If word is straight in last letter and there is no other option we return null to roll back
 		if (word.equals(tempWord)) {
-		    grid.setSameDirection(coord, true);
 		    firstLetter = true;
+		    sameDirection = true;
 		} else {
-		    if (lastGrid.getGrid().isSameDirection(coord, goodDirection)) {
+		    if (lastTempGrid.getGrid().isSameDirection(coord, goodDirection)) {
 	            if (tempWord == null || tempWord.length() <= 1) {
-	                goodDirection = findGoodDirectionForLastLetter();
+	                goodDirection = findGoodDirectionForLastLetter(c);
 	                if (goodDirection == 0) {
 	                    return null; // There is no possibile solution from this point
 	                }
-	                grid.setSameDirection(coord, false);
+	                sameDirection = false;
 	            } else {
-	                grid.setSameDirection(coord, true);
+	                sameDirection = true;
 	            }
 	        } else {
-	            grid.setSameDirection(coord, false); 
+	            sameDirection = false; 
 	        } 
 		}
 		
+		if (firstLetter && isAfterDescription)
+		    grid.setWordStartDirection(c.getCurrentCoord(), goodDirection);
+		else
+		    grid.setWordStartDirection(c.getCurrentCoord(), 0);
 		
 		//Lets set on old coord where we went from there
 		grid.setNextDirection(coord, goodDirection);
 		
-		if (!firstLetter)
-		    getNewLetterCoords(goodDirection);
+        if (!firstLetter || isAfterDescription)
+            getNewLetterCoords(goodDirection);
 		
+       grid.setSameDirection(coord, sameDirection); 
+        
 //		grid.setLastDirection(coord, goodDirection);
 		char letter = tempWord.charAt(0);
 		grid.setLetter(coord, letter);
+		grid.setWordIndex(coord, wordIndex);
 		
 		//Reset next direction for this cell in case it was written in the past
 		if (tempWord.length() == 1) {
@@ -142,35 +177,37 @@ public class Steps {
 		tempWord = tempWord.length() > 1 ? tempWord.substring(1) : "";
 		List<Integer> nextUnusedDirections = grid.determineDirection(coord);
 		
-		
+		//TODO
 //		 System.out.print("END STEP ---------------------");
 //	     grid.printGrid();
-		
 		return new GridWithWord(grid, tempWord, new CoordWithUnusedDir(nextUnusedDirections, coord));
 		
 	}
 	
-	private int findGoodDirection() {
-	    int whichDirection = (int) Math.round(Math.random() * (lastGrid.getUnusedGoodDirection().size() - 1));
-        int goodDirection = lastGrid.getUnusedGoodDirection().get(whichDirection);
+	private int findGoodDirection(CoordWithUnusedDir c) {
+	    int whichDirection = (int) Math.round(Math.random() * (c.getUnusedGoodDirection().size() - 1));
+        int goodDirection = c.getUnusedGoodDirection().get(whichDirection);
         // Since direction is not 0 lets remove it from previous step since it is
         // already used in our tree
         // Remove it from original object
         if (goodDirection != 0) {
-          lastGrid.getUnusedGoodDirection().remove(whichDirection);
+            c.getUnusedGoodDirection().remove(whichDirection);
         }
-        
+        //TODO
+//        System.out.println("good direction: " + goodDirection);
         return goodDirection;
 	}
 	
-	private int findGoodDirectionForLastLetter() {
+	
+	
+	private int findGoodDirectionForLastLetter(CoordWithUnusedDir c) {
 	    int index = 0;
 	    List<Integer> viableDirections = new ArrayList<>();
-	    for (int direction : lastGrid.getUnusedGoodDirection()) {
+	    for (int direction : c.getUnusedGoodDirection()) {
 	        if (!lastGrid.getGrid().isSameDirection(coord, direction) && direction != 0)
 	            viableDirections.add(direction);
 	        else {
-	            lastGrid.getUnusedGoodDirection().remove(index);
+	            c.getUnusedGoodDirection().remove(index);
 	        }
 	        index++;
 	    }
@@ -178,7 +215,7 @@ public class Steps {
 	        int whichDirection = (int) Math.round(Math.random() * (viableDirections.size() - 1));
 	       return viableDirections.get(whichDirection);
 	    }
-	    
+	  
         return 0;
     }
 	
@@ -192,7 +229,7 @@ public class Steps {
         coord[1] = lastGrid.getCurrentCoord()[1];
         GridWithWord resultGrid;
      // enter 1 empty cell in grid
-        if ("1".equals(numberOfCells)) {
+        if (numberOfCells == 1) {
             resultGrid = addOneDescriptionCell(lastGrid.getGrid());
          // enter 2 empty cell in grid  
         } else {
@@ -205,6 +242,8 @@ public class Steps {
         List<CoordWithUnusedDir> nextUnusedCoords = new ArrayList<>();
         Grid tempGrid = new Grid(lastGrid.getGrid());
         tempGrid.setLetter(coord, '#');
+        tempGrid.setWordStartDirection(coord, 0);
+        tempGrid.setWordIndex(coord, wordIndex);
         List<Integer> unusedDirections = tempGrid.determineDirectionWithoutZero(coord);
         
         if (unusedDirections.size() == 0)
@@ -252,11 +291,15 @@ public class Steps {
             
             //Add to root cell
             tempGrid1.setLetter(tempCoord, '#');
+            tempGrid1.setWordStartDirection(tempCoord, 0);
+            tempGrid1.setWordIndex(tempCoord, wordIndex);
             //Now add to all directions also
             for (Integer d : directions) {
                 tempCoord[0] += (d + 1) % 2;
                 tempCoord[1] += d % 2;
                 tempGrid1.setLetter(tempCoord, '#');
+                tempGrid1.setWordStartDirection(tempCoord, 0);
+                tempGrid1.setWordIndex(tempCoord, wordIndex);
             }
             
             //Now lets reset coords and Calculate unused directions and see if there are any possibilities
@@ -297,13 +340,13 @@ public class Steps {
         List<DescrDirections> resulTreeList = new ArrayList<>();
 
         // L direction
-        if (grid.isLeftLeftValid(coords)) {
+        if (grid.isLeftValid(coords)) {
             List<Integer> lTree = new ArrayList<>();
             lTree.add(-3);
             resulTreeList.add(new DescrDirections(lTree));
         }
         // R direction
-        if (grid.isLeftLeftValid(coords)) {
+        if (grid.isRightValid(coords)) {
             List<Integer> rTree = new ArrayList<>();
             rTree.add(1);
             resulTreeList.add(new DescrDirections(rTree));

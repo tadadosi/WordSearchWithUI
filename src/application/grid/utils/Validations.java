@@ -12,6 +12,20 @@ public class Validations {
 		
 		for(String word : wordList) {
 			totalLength = totalLength + word.length();
+			char firstLetter = word.charAt(0);
+			switch (firstLetter) {
+            case '2':
+                totalLength++;
+                break;
+            case '3' :
+                totalLength += 2;
+                break;
+            case '4' :
+                totalLength += 3;
+                break;
+            default:
+                break;
+            }
 		}
 		
 		if (totalGridSize != totalLength)

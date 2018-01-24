@@ -5,6 +5,8 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
+import javax.swing.text.AbstractDocument.LeafElement;
+
 import application.err.WordError;
 import application.grid.config.WordConfig;
 import application.grid.utils.BinPacking;
@@ -103,11 +105,11 @@ public class StartingPoint {
 
                 
                 //Try to add word
-                while (loopIndex < 100 && !added) {
+                while (loopIndex < 75 && !added) {
                     loopIndex++;
-                    int[] coord = startingPosition(finalGrid, areaForWord, loopIndex);
+                    int[] coord = startingPosition(finalGrid, areaForWord, loopIndex, myWord);
                     
-                    Steps steps = new Steps(finalGrid, myWord, coord);
+                    Steps steps = new Steps(finalGrid, myWord, coord, zingsniai);
                     
                     long enterWordt1 = System.currentTimeMillis();
                     withWordEntered = steps.enterWordInGrid();
@@ -145,46 +147,60 @@ public class StartingPoint {
         stepBack(wordsAdded, gridAdded, stepsBack);
 	}
 	
-	public static int[] startingPosition(Grid grid, int areaToWriteTo, int loopIndex) {
-		List<int[]> coord = grid.coordByAreaId(areaToWriteTo);
-		List<int[]> coordOther = new ArrayList<>();
-		List<int[]> coordWith2Empty = new ArrayList<>();
-		List<int[]> coordWith1Empty = new ArrayList<>();
-		
-		
-		if (loopIndex < 5) {
-		//Bandom pradeti nuo tu langeliu kur geru koordinaciu yra 1, jei tokiu nera tai kur 2 bet kampinis
-		for (int[] c : coord) {
-		    List<Integer> directions = grid.determineDirection(c);
-		    
-		    if (directions.size() ==2 ) {
-		        int sum = 0;
-		        //Patikrinam kad butu kampinis
-		        for (Integer c2 : directions) {
-		            sum = sum + c2.intValue();
-		        }
-		        if (sum % 2 != 0)
-		            coordWith2Empty.add(c);
-            } else if (directions.size() ==1 ) {
-		        coordWith1Empty.add(c);
-            } else {
-                coordOther.add(c);
+	public static int[] startingPosition(Grid grid, int areaToWriteTo, int loopIndex, String word) {
+        List<int[]> coord = grid.coordByAreaId(areaToWriteTo);
+        List<int[]> coordOther = new ArrayList<>();
+        List<int[]> coordWith2Empty = new ArrayList<>();
+        List<int[]> coordWith1Empty = new ArrayList<>();
+        char firstLetter = word.charAt(0);
+
+        if (loopIndex < 10) {
+            // Bandom pradeti nuo tu langeliu kur geru koordinaciu yra 1, jei
+            // tokiu nera tai kur 2 bet kampinis
+            for (int[] c : coord) {
+                List<Integer> directions = grid.determineDirectionWithoutZero(c);
+
+                if (directions.size() == 2) {
+                    int sum = 0;
+                    // Patikrinam kad butu kampinis
+                    for (Integer c2 : directions) {
+                        sum = sum + c2.intValue();
+                    }
+                    if (sum % 2 != 0)
+                        coordWith2Empty.add(c);
+                } else if (directions.size() == 1) {
+                    coordWith1Empty.add(c);
+                } else {
+                    coordOther.add(c);
+                }
             }
-		}
-		if (coordWith1Empty.size() > 0) {
-		    int index = (int) Math.round(Math.random() * (coordWith1Empty.size() - 1));
-	        return coordWith1Empty.get(index);
-		} else if (coordWith2Empty.size() > 0) {
-            int index = (int) Math.round(Math.random() * (coordWith2Empty.size() - 1));
-            return coordWith2Empty.get(index);
+
+            switch (firstLetter) {
+            case '4':
+                if (coordWith2Empty.size() > 0) {
+                    int index = (int) Math.round(Math.random() * (coordWith2Empty.size() - 1));
+                    return coordWith2Empty.get(index);
+                } else {
+                    int index = (int) Math.round(Math.random() * (coordOther.size() - 1));
+                    return coordOther.get(index);
+                }
+            default:
+                if (coordWith1Empty.size() > 0) {
+                    int index = (int) Math.round(Math.random() * (coordWith1Empty.size() - 1));
+                    return coordWith1Empty.get(index);
+                } else if (coordWith2Empty.size() > 0) {
+                    int index = (int) Math.round(Math.random() * (coordWith2Empty.size() - 1));
+                    return coordWith2Empty.get(index);
+                } else {
+                    int index = (int) Math.round(Math.random() * (coordOther.size() - 1));
+                    return coordOther.get(index);
+                }
+            }
+
         } else {
-            int index = (int) Math.round(Math.random() * (coordOther.size() - 1));
-            return coordOther.get(index);
+            int index = (int) Math.round(Math.random() * (coord.size() - 1));
+            return coord.get(index);
         }
-		} else {
-		      int index = (int) Math.round(Math.random() * (coord.size() - 1));
-		      return coord.get(index);
-		}
 
 	}
 
@@ -202,7 +218,23 @@ public class StartingPoint {
 
 		List<Integer> weights = new ArrayList<Integer>();
 		for (String word : words) {
-			weights.add(word.length());
+		    int w = word.length();
+		    char firstLetter = word.charAt(0);
+		    
+		    switch (firstLetter) {
+            case '2':
+                w++;
+                break;
+            case '3' :
+                w += 2;
+                break;
+            case '4' :
+                w += 3;
+                break;
+            default:
+                break;
+            }
+			weights.add(w);
 		}
 		return weights;
 	}
@@ -212,9 +244,47 @@ public class StartingPoint {
 
             @Override
             public int compare(String o1, String o2) {
-                if (o2.length() > o1.length())
+                int o1Length = 0;
+                int o2Length = 0;
+                
+                char o1FirstLetter = o1.charAt(0);
+                char o2FirstLetter = o2.charAt(0);
+                
+                o1Length = o1.length();
+                o2Length = o2.length();
+                
+                switch (o1FirstLetter) {
+                case '2':
+                    o1Length++;
+                    break;
+                case '3' :
+                    o1Length += 2;
+                    break;
+                case '4' :
+                    o1Length += 3;
+                    break;
+                default:
+                    break;
+                }
+                
+                switch (o2FirstLetter) {
+                case '2':
+                    o2Length++;
+                    break;
+                case '3' :
+                    o2Length += 2;
+                    break;
+                case '4' :
+                    o2Length += 3;
+                    break;
+                default:
+                    break;
+                }
+                
+                
+                if (o2Length > o1Length)
                     return 1;
-                if (o1.length() > o2.length())
+                if (o1Length > o2Length)
                     return -1;
                 return 0;
             }
