@@ -5,16 +5,23 @@ public class Cell {
 	private char letter;
 	private int areaId;
 	private int nextDirection;
-	private int lastDirection;
+	private boolean sameDirection;
+	private int wordStartDirection;
+	private int wordIndex;
+	
 	
 	public Cell() {
+	    sameDirection = true;
+	    wordStartDirection = 0;
 	}
 	public Cell(Cell other) {
 		this.id = other.id;
 		this.letter = other.letter;
 		this.areaId = other.areaId;
 		this.nextDirection = other.nextDirection;
-		this.lastDirection = other.lastDirection;
+		this.sameDirection = other.sameDirection;
+		this.wordStartDirection = other.wordStartDirection;
+		this.wordIndex = other.wordIndex;
 	}
 	
 	public int getId() {
@@ -43,14 +50,25 @@ public class Cell {
     public int getNextDirection() {
         return nextDirection;
     }
-    public int getLastDirection() {
-        return lastDirection;
-    }
     public void setNextDirection(int nextDirection) {
         this.nextDirection = nextDirection;
     }
-    public void setLastDirection(int lastDirection) {
-        this.lastDirection = lastDirection;
+    public boolean isSameDirection() {
+        return sameDirection;
     }
-	
+    public void setSameDirection(boolean sameDirection) {
+        this.sameDirection = sameDirection;
+    }
+    public int getWordStartDirection() {
+        return wordStartDirection;
+    }
+    public void setWordStartDirection(int wordStartDirection) {
+        this.wordStartDirection = wordStartDirection;
+    }
+    public int getWordIndex() {
+        return wordIndex;
+    }
+    public void setWordIndex(int wordIndex) {
+        this.wordIndex = wordIndex;
+    }
 }

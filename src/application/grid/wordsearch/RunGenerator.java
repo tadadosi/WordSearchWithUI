@@ -44,6 +44,6 @@ public class RunGenerator {
         } else {
             throw new WordError("Failed to generate grid. Last iteration error: " + errorMessage);
         }
-            
+          
     }
 }

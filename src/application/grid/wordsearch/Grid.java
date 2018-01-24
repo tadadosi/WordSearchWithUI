@@ -132,33 +132,64 @@ public class Grid{
 	}
 
 	public void setLetter(int[] coord, char letter) {
-		grid[coord[0]][coord[1]].setLetter(letter);
+	    grid[coord[0]][coord[1]].setLetter(letter);
 	}
+	
+	public void setWordIndex(int[] coord, int index) {
+        grid[coord[0]][coord[1]].setWordIndex(index);
+    }
 	
 	public void setNextDirection(int[] coord, int direction) {
         grid[coord[0]][coord[1]].setNextDirection(direction);
     }
-	
-	public void setLastDirection(int[] coord, int direction) {
-        grid[coord[0]][coord[1]].setLastDirection(direction);
+	public void setWordStartDirection(int[] coord, int direction) {
+        grid[coord[0]][coord[1]].setWordStartDirection(direction);
     }
+	
+	public boolean isSameDirection(int[] coord, int direction) {
+        if (grid[coord[0]][coord[1]].getNextDirection() == direction && grid[coord[0]][coord[1]].isSameDirection()) {
+            return true;
+        }
+        return false;
+    }
+	
+    public void setSameDirection(int[] coord, boolean isSameDirection) {
+        grid[coord[0]][coord[1]].setSameDirection(isSameDirection);
+    }
+	
 	
 	// check which direction you can snake
 	public List<Integer> determineDirection(int[] coord) {
 		List<Integer> direction = new ArrayList<Integer>();
 		
-		if (coord[1] + 1 < grid[0].length && grid[coord[0]][coord[1] + 1].getLetter() == '\0')
+		if (isRightValid(coord))
 			direction.add(1);
-		if (coord[0] + 1 < grid.length && grid[coord[0] + 1][coord[1]].getLetter() == '\0')
+		if (isDownValid(coord))
 			direction.add(2);
-		if (coord[1] - 1 >= 0 && grid[coord[0]][coord[1] - 1].getLetter() == '\0')
+		if (isLeftValid(coord))
 			direction.add(-3);
-		if (coord[0] - 1 >= 0 && grid[coord[0] - 1][coord[1]].getLetter() == '\0')
+		if (isUpValid(coord))
 			direction.add(-4);
 		if (direction.size() == 0)
 			direction.add(0);
 		return direction;
 	}
+	
+	// check which direction you can snake
+    public List<Integer> determineDirectionWithoutZero(int[] coord) {
+        List<Integer> direction = new ArrayList<Integer>();
+        
+        if (isRightValid(coord))
+            direction.add(1);
+        if (isDownValid(coord))
+            direction.add(2);
+        if (isLeftValid(coord))
+            direction.add(-3);
+        if (isUpValid(coord))
+            direction.add(-4);
+        return direction;
+    }
+	
 	
 	// return coordinates for specific areaId
 	public List<int[]> coordByAreaId(int areaId) {
@@ -173,6 +204,19 @@ public class Grid{
 		}
 		return coordList;
 	}
+	
+	public List<int[]> allCoords() {
+	    List<int[]> coordList = new ArrayList<int[]>();
+        for (int row = 0; row < grid.length; row++) {
+            for (int col = 0; col < grid[0].length; col++) {
+                if( grid[row][col].getLetter() == '\0') {
+                    int[] coord = {row, col};
+                    coordList.add(coord);
+                }
+            }
+        }
+        return coordList;
+    }
 	
 	public List<int[]> coordByEmpty() {
 		List<int[]> coordList = new ArrayList<int[]>();
@@ -195,4 +239,124 @@ public class Grid{
 		this.grid = grid;
 	}
 	
+	public boolean isLURTreeValid(int[] coord) {
+	    if (isLeftValid(coord) && isUpValid(coord) && isUpleftValid(coord))
+	        return true;
+	    
+	    return false;
+	}
+	
+	public boolean isLDRTreeValid(int[] coord) {
+	    if (isLeftValid(coord) && isDownValid(coord) && isDownLeftValid(coord))
+            return true;
+        
+        return false;
+    }
+	
+	public boolean isRULTreeValid(int[] coord) {
+	    if (isRightValid(coord) && isUpValid(coord) && isUpRightValid(coord))
+            return true;
+        
+        return false;
+    }
+	
+    public boolean isRDLTreeValid(int[] coord) {
+        if (isRightValid(coord) && isDownValid(coord) && isDownRightValid(coord))
+            return true;
+
+        return false;
+    }
+	
+    public boolean isUpValid(int[] coord) {
+	    //UP
+        if (coord[0] - 1 < 0 ||  grid[coord[0]-1][coord[1]].getLetter() != '\0')
+            return false;
+        
+        return true;
+	}
+	
+	public boolean isDownValid(int[] coord) {
+        //DOWN
+	    if (coord[0] + 1 >= grid.length ||  grid[coord[0]+1][coord[1]].getLetter() != '\0')
+            return false;
+        
+        return true;
+    }
+	
+	public boolean isLeftValid(int[] coord) {
+        //LEFT
+	    if (coord[1] - 1 < 0 || grid[coord[0]][coord[1] - 1].getLetter() != '\0')
+            return false;
+
+        return true;
+	}
+	
+	public boolean isRightValid(int[] coord) {
+        //RIGHT
+	    if (coord[1] + 1 >= grid[0].length || grid[coord[0]][coord[1]+1].getLetter() != '\0')
+            return false;
+        return true;
+    }
+	
+	public boolean isUpRightValid(int[] coord) {
+	    //UP-RIGHT DIAGONAL
+        if (coord[0] - 1 < 0  || coord[1] + 1 >= grid[0].length || grid[coord[0]-1][coord[1]+1].getLetter() != '\0')
+            return false;
+        
+        return true;
+	}
+	
+	public boolean isUpleftValid(int[] coord) {
+        // UP-LEFT DIAGONAL
+        if (coord[0] - 1 < 0 || coord[1] - 1 < 0 || grid[coord[0] - 1][coord[1] - 1].getLetter() != '\0')
+            return false;
+
+        return true;
+    }
+    
+    public boolean isDownLeftValid(int[] coord) {
+        // DOWN-LEFT DIAGONAL
+        if (coord[0] + 1 >= grid.length || coord[1] - 1 < 0 || grid[coord[0] + 1][coord[1] - 1].getLetter() != '\0')
+            return false;
+
+        return true;
+    }
+	
+    public boolean isDownRightValid(int[] coord) {
+        // DOWN-LEFT DIAGONAL
+        if (coord[0] + 1 >= grid.length || coord[1] + 1 >= grid[0].length || grid[coord[0] + 1][coord[1] + 1].getLetter() != '\0')
+            return false;
+
+        return true;
+    }
+    
+    public boolean isLeftLeftValid(int[] coord) {
+        if (!isLeftValid(coord))
+            return false;
+        
+        int goodDirection = -3;
+        int[] tempCoord = new int[2];
+        tempCoord[0] = coord[0] + (goodDirection + 1) % 2;
+        tempCoord[1] = coord[1] + goodDirection % 2;
+        
+        if (!isLeftValid(tempCoord))
+            return false;
+        
+        return true;
+    }
+    
+    public boolean isRightRightValid(int[] coord) {
+        if (!isRightValid(coord))
+            return false;
+        
+        int goodDirection = 1;
+        int[] tempCoord = new int[2];
+        tempCoord[0] = coord[0] + (goodDirection + 1) % 2;
+        tempCoord[1] = coord[1] + goodDirection % 2;
+        
+        if (!isRightValid(tempCoord))
+            return false;
+        
+        return true;
+    }
 }
