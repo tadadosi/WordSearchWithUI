@@ -5,6 +5,7 @@ public class Cell {
 	private char letter;
 	private int areaId;
 	private int nextDirection;
+	private int lastDirection;
 	private boolean sameDirection;
 	private int wordStartDirection;
 	private int wordIndex;
@@ -22,6 +23,7 @@ public class Cell {
 		this.sameDirection = other.sameDirection;
 		this.wordStartDirection = other.wordStartDirection;
 		this.wordIndex = other.wordIndex;
+		this.lastDirection = other.lastDirection;
 	}
 	
 	public int getId() {
@@ -71,4 +73,11 @@ public class Cell {
     public void setWordIndex(int wordIndex) {
         this.wordIndex = wordIndex;
     }
+    public int getLastDirection() {
+        return lastDirection;
+    }
+    public void setLastDirection(int lastDirection) {
+        this.lastDirection = lastDirection;
+    }
+    
 }

@@ -2,6 +2,7 @@
 package application.grid.wordsearch;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
@@ -120,7 +121,7 @@ public class Steps {
 //		grid.printGrid();
 		
 		String tempWord = lastTempGrid.getWordToWrite();
-		
+		int letterNumber = word.length() - tempWord.length() + 1;
 		int goodDirection = findGoodDirection(c);
 		
 		if (goodDirection == 0) {
@@ -132,13 +133,17 @@ public class Steps {
 		if (word.equals(tempWord)) {
 		    firstLetter = true;
 		    sameDirection = true;
+		} else if (letterNumber == 2 && tempWord.length() <= 1) {
+		    return null;
+		} else if (letterNumber == 2) {
+		    sameDirection = true; 
 		} else {
 		    if (lastTempGrid.getGrid().isSameDirection(coord, goodDirection)) {
 	            if (tempWord == null || tempWord.length() <= 1) {
 	                goodDirection = findGoodDirectionForLastLetter(c);
 	                if (goodDirection == 0) {
 	                    return null; // There is no possibile solution from this point
-	                }
+	                } 
 	                sameDirection = false;
 	            } else {
 	                sameDirection = true;
@@ -153,11 +158,20 @@ public class Steps {
 		else
 		    grid.setWordStartDirection(c.getCurrentCoord(), 0);
 		
-		//Lets set on old coord where we went from there
-		grid.setNextDirection(coord, goodDirection);
 		
-        if (!firstLetter || isAfterDescription)
+		
+		
+        if (!firstLetter || isAfterDescription) {
+          //Lets set on old coord where we went from there
+            grid.setNextDirection(coord, goodDirection);
             getNewLetterCoords(goodDirection);
+        } else {
+            grid.setNextDirection(coord, 0);
+        }
+          
+        if (!firstLetter) {
+            grid.setLastDirection(coord, goodDirection);
+        }       
 		
        grid.setSameDirection(coord, sameDirection); 
         
@@ -169,8 +183,6 @@ public class Steps {
 		//Reset next direction for this cell in case it was written in the past
 		if (tempWord.length() == 1) {
 		    grid.setNextDirection(coord, 0);
-		} else {
-		    grid.setNextDirection(coord, goodDirection);
 		}
 		    
 		// Now lets remove first letter from word since we already written it
@@ -203,13 +215,19 @@ public class Steps {
 	private int findGoodDirectionForLastLetter(CoordWithUnusedDir c) {
 	    int index = 0;
 	    List<Integer> viableDirections = new ArrayList<>();
-	    for (int direction : c.getUnusedGoodDirection()) {
+	    List<Integer> indexToRemove = new ArrayList<>();
+	    for (Integer direction : c.getUnusedGoodDirection()) {
 	        if (!lastGrid.getGrid().isSameDirection(coord, direction) && direction != 0)
 	            viableDirections.add(direction);
 	        else {
-	            c.getUnusedGoodDirection().remove(index);
+	            indexToRemove.add(index);
 	        }
 	        index++;
+	    }
+	    int removedNr = 0;
+	    for (int i: indexToRemove) {
+	        c.getUnusedGoodDirection().remove(i - removedNr);
+	        removedNr++;
 	    }
 	    if (viableDirections != null && viableDirections.size() > 0) {
 	        int whichDirection = (int) Math.round(Math.random() * (viableDirections.size() - 1));
@@ -218,7 +236,7 @@ public class Steps {
 	  
         return 0;
     }
-	
+
 	private void getNewLetterCoords(int goodDirection) {
 	    coord[0] += (goodDirection + 1) % 2;
         coord[1] += goodDirection % 2;

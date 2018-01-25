@@ -142,15 +142,26 @@ public class Grid{
 	public void setNextDirection(int[] coord, int direction) {
         grid[coord[0]][coord[1]].setNextDirection(direction);
     }
+	public void setLastDirection(int[] coord, int direction) {
+        grid[coord[0]][coord[1]].setLastDirection(direction);
+    }
 	public void setWordStartDirection(int[] coord, int direction) {
         grid[coord[0]][coord[1]].setWordStartDirection(direction);
     }
 	
 	public boolean isSameDirection(int[] coord, int direction) {
-        if (grid[coord[0]][coord[1]].getNextDirection() == direction && grid[coord[0]][coord[1]].isSameDirection()) {
+	    if (grid[coord[0]][coord[1]].getLastDirection() == direction && grid[coord[0]][coord[1]].isSameDirection()) {
             return true;
         }
         return false;
+    }
+	
+	public boolean isSameDirectionOrSecondCell(int[] coord, int direction) {
+	    //this means that this cell is first cell. Then 2 cells are always same direction.
+        if (grid[coord[0]][coord[1]].getNextDirection() == 0) {
+            return true;
+        }
+        return isSameDirection(coord, direction);
     }
 	
     public void setSameDirection(int[] coord, boolean isSameDirection) {

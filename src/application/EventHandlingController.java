@@ -3,7 +3,9 @@ package application;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import application.err.WordError;
 import application.grid.config.WordConfig;
@@ -24,10 +26,11 @@ import javafx.scene.control.Label;
 import javafx.scene.control.Slider;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
-import javafx.scene.effect.BlendMode;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
+import javafx.scene.text.Text;
 import javafx.scene.text.TextAlignment;
+import javafx.scene.text.TextFlow;
 
 public class EventHandlingController {
     
@@ -42,6 +45,8 @@ public class EventHandlingController {
     @FXML
     private Button saveWordsButton;
     @FXML
+    private Button checkWordsButton;
+    @FXML
     private TextArea outputTextArea;
     @FXML
     private TextArea inputWordTextArea;
@@ -53,6 +58,8 @@ public class EventHandlingController {
     private Label sizeLabel;
     @FXML
     private Label answerSizeLabel;
+    @FXML
+    private Label warnWordsLabel;
     @FXML
     private Slider verticalSlider;
     @FXML
@@ -99,23 +106,23 @@ public class EventHandlingController {
         descriptionTiles = 0;
         circleSize = 4;
         lineWidth = 1;
+        words = new ArrayList<>();
     }
     
     @FXML
     private void initialize()  {
         setErrorAnswerLabelValue();
         setAnswerLenLabel();
-        stopButton.setDisable(true);
         generateButtonAction();
         getHorizontalSlidersParameter();
         getVerticalSlidersParameter();
         inputWordTextAreaAction();
         answerTextFieldAction();
         closeButtonAction();
-        stopButtonAction();
         saveWordsButtonAction();
         shuffleAnswerCheckBoxAction();
         colorizeLettersCheckBoxAction();
+        checkWordsButtonAction();
         
         answerSizeLabel.setText(new Integer(answer.length()).toString());
         
@@ -131,8 +138,8 @@ public class EventHandlingController {
             if (totalLetters != gridSize) {
                 handleError("Ávestas neteisingas raidþiø skaièius!");
             } else {
-                generateButton.setDisable(true);
-                stopButton.setDisable(false);
+//                generateButton.setDisable(true);
+//                stopButton.setDisable(false);
 //                gridThread = new Thread(() -> calculateGrid());
 //                gridThread.start();
                 calculateGrid();
@@ -154,7 +161,7 @@ public class EventHandlingController {
             drawGrid(gridObj);
             handleSuccess("Sugeneravo!");
         } catch (WordError e) {
-            handleError(e.getMessage());
+            handleError("Nepavyko sugeneruoti. Bandykite dar kartà.");
         }
         generateButton.setDisable(false);
         stopButton.setDisable(true);
@@ -327,6 +334,7 @@ public class EventHandlingController {
         shuffleAnswerCheckBox.selectedProperty().addListener(new ChangeListener<Boolean>() {
             public void changed(ObservableValue<? extends Boolean> ov,
                 Boolean old_val, Boolean new_val) {
+                    resetError();    
                     randomLetters = new_val;
             }
         });
@@ -336,6 +344,7 @@ public class EventHandlingController {
         colorizeLettersCheckBox.selectedProperty().addListener(new ChangeListener<Boolean>() {
             public void changed(ObservableValue<? extends Boolean> ov,
                 Boolean old_val, Boolean new_val) {
+                    resetError();
                     coloredAnswer = new_val;
             }
         });
@@ -357,11 +366,58 @@ public class EventHandlingController {
                 handleSuccess("Uþsaugota á words.txt failà");
                 writeToFile(FILE_TO_SAVE_WORDS, words);
             } catch (IOException e) {
-                handleError("Nepavyko áraðyti 5 failà!");
+                handleError("Nepavyko áraðyti á failà!");
             }
             
             
         });
+    }
+    
+    private void checkWordsButtonAction() {
+        checkWordsButton.setOnAction((event) -> {
+            resetError();
+            Set<String> wordsReversable = new HashSet<>();
+            Set<String> wordsIdentical = new HashSet<>();
+            
+            getWordsFromTextArea();
+            
+            for (String w: words) {
+                String lowerWord = wordLowerWithoutNumber(w);
+                String reversedWord =  new StringBuilder(lowerWord).reverse().toString();
+                if (lowerWord.equals(reversedWord)) {
+                    wordsReversable.add(wordWithoutNumber(w));
+                }    
+            }
+           
+            for (int i = 0; i < words.size()-1; i++) {
+                for (int j = i+1; j< words.size(); j++) {
+                    if (wordLowerWithoutNumber(words.get(i)).equals(wordLowerWithoutNumber(words.get(j)))) {
+                        wordsIdentical.add(wordWithoutNumber(words.get(i)));
+                    }
+                }
+            }    
+            
+            handleWanrWords(wordsReversable, wordsIdentical);
+        });
+    }
+    
+    private String wordLowerWithoutNumber(String word) {
+        if (!word.isEmpty())
+            return wordWithoutNumber(word).toLowerCase();
+        
+        return word;
+    }
+    
+    private String wordWithoutNumber(String word) {
+        String wordToCheck = word;
+        if (!wordToCheck.isEmpty()) {
+            char firstLetter = wordToCheck.charAt(0);
+            if (firstLetter == '1' || firstLetter == '2' || firstLetter == '3' || firstLetter == '4') {
+                wordToCheck = wordToCheck.substring(1, wordToCheck.length());
+            }
+            return wordToCheck;
+        }
+        return word;
     }
     
     private void closeButtonAction() {
@@ -376,6 +432,7 @@ public class EventHandlingController {
         answerTextField.textProperty().addListener(new ChangeListener<String>() {
             @Override
             public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
+                resetError();
                 answer = answerTextField.getText().replaceAll("\\s","");
                 setAnswerLenLabel();
                 setErrorAnswerLabelValue();
@@ -388,29 +445,34 @@ public class EventHandlingController {
         inputWordTextArea.textProperty().addListener(new ChangeListener<Object>() {
             @Override
             public void changed(ObservableValue<?> observable, Object oldValue, Object newValue) {
-                String inputText = inputWordTextArea.getText().replaceAll("\\s+","");
-                String cleanString = inputText.replaceAll("\r", "").replaceAll("\n\\s+", "");
-                insertedLettersSize = cleanString.length();
+                resetError();
+                insertedLettersSize = 0;
+                String inputText = inputWordTextArea.getText();
+                
+//                insertedLettersSize = cleanString.length();
+                String[] w = inputText.split("\n");
                 //Lets check if there are any numbers which means this will be description empty cells, which take as many cells as number itself. Means we add +1 if its 2 and +2 if 3...
-                for (int i = 0; i < cleanString.length(); i++){
-                    char c = cleanString.charAt(i);
-                    switch (c) {
-                    case '2':
-                        insertedLettersSize++;
-                        break;
-                    case '3' :
-                        insertedLettersSize += 2;
-                        break;
-                    case '4' :
-                        insertedLettersSize += 3;
-                        break;
-                    default:
-                        break;
+                for (String word : w) {
+                    if (!word.isEmpty()) {
+                        word = word.trim().replaceAll("\\s+","");
+                        insertedLettersSize += word.length();
+                        char c = word.charAt(0);
+                        switch (c) {
+                        case '2':
+                            insertedLettersSize++;
+                            break;
+                        case '3':
+                            insertedLettersSize += 2;
+                            break;
+                        case '4':
+                            insertedLettersSize += 3;
+                            break;
+                        default:
+                            break;
+                        }
                     }
                 }
-                
                 setErrorAnswerLabelValue();
-                    
             }
         }); 
     }
@@ -420,7 +482,7 @@ public class EventHandlingController {
         horizontalSlider.valueProperty().addListener(new ChangeListener<Object>() {
             @Override
             public void changed(ObservableValue<?> observable, Object oldValue, Object newValue) {
-                
+                    resetError();
                     xSize = (int) horizontalSlider.getValue();
                     sizeLabel.setText(xSize + "X" + ySize);
                     gridSize = xSize * ySize;
@@ -434,7 +496,7 @@ public class EventHandlingController {
         verticalSlider.valueProperty().addListener(new ChangeListener<Object>() {
             @Override
             public void changed(ObservableValue<?> observable, Object oldValue, Object newValue) {
-                
+                    resetError();
                     ySize = (int) verticalSlider.getValue();
                     sizeLabel.setText(xSize + "X" + ySize);
                     gridSize = xSize * ySize;
@@ -458,7 +520,7 @@ public class EventHandlingController {
     
     private void getWordsFromTextArea() {
         if (inputWordTextArea.getText().equals("")) {
-            handleError("Input field is empty");
+            handleError("Nerasta nei vieno þodþio!");
         } else {
             words = getWords(inputWordTextArea.getText().split("\n"));
             System.out.println(words);
@@ -473,7 +535,8 @@ public class EventHandlingController {
         }
         
         for (String w : wordsArr) {
-            words.add(w.trim().replaceAll("\\s+",""));
+            if (!w.isEmpty())
+                words.add(w.trim().replaceAll("\\s+",""));
         }
         
         return words;
@@ -494,8 +557,42 @@ public class EventHandlingController {
         errorLabel.setText(err);
     }
     
+    private void handleWanrWords(Set<String> reversableWords, Set<String> identicalWords) {
+        String msg = "";
+        
+        if (reversableWords != null && !reversableWords.isEmpty()) {
+            msg += "Simetriðki þodþiai: " + newLine;
+            for (String rw : reversableWords) {
+                msg += rw + ", ";
+            }
+            msg = msg.substring(0, msg.length() - 2);
+            msg += newLine;
+        }
+        
+        if (identicalWords != null && !identicalWords.isEmpty()) {
+            msg += "Besikartojantys þodþiai: " + newLine;
+            for (String iw : identicalWords) {
+                msg += iw + ", ";
+            }
+            msg = msg.substring(0, msg.length() - 2);
+        }
+        if (reversableWords.isEmpty() && identicalWords.isEmpty() ) {
+            msg = "Nerasta.";
+        }
+        
+        warnWordsLabel.setTextFill(Color.ORANGE);
+        warnWordsLabel.setText(msg);
+        
+//        TextFlow flow = new TextFlow();
+//        Text t1 = new Text();
+//        t1.setStyle("-fx-fill: #4F8A10;-fx-font-weight:bold;");
+//        t1.setText("Vienas");
+    }
+    
+    
     private void resetError() {
         errorLabel.setText("");
+        warnWordsLabel.setText("");
     }
     
     private void writeToFile(String file, List<String> arrData)
