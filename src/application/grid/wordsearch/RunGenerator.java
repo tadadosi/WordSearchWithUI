@@ -4,6 +4,7 @@ import java.util.List;
 
 import application.err.WordError;
 import application.grid.config.WordConfig;
+import javafx.concurrent.Task;
 
 public class RunGenerator {
     boolean added = false;
@@ -23,17 +24,22 @@ public class RunGenerator {
 
 
 
-    public Grid run() throws WordError {
-        int timesToTry = 100;
+    public Grid run(Task<Void> task) throws WordError {
+        int timesToTry = 1000;
         int loopIndex = 0;
-            while (loopIndex < timesToTry && !added) {
+            while (!added && !task.isCancelled()) {
                 loopIndex++;
                 try {
-                    StartingPoint startingPoint = new StartingPoint(words, answer, config);
+                    StartingPoint startingPoint = new StartingPoint(words, answer, config, task);
                     startingPoint.constructGrid();
                     resultGrid = startingPoint.getFinalGrid();
-                    added = true;
-                    System.out.println("done in " + loopIndex + " tries");
+                    if (!task.isCancelled()) {
+                    	added = true;
+                    	System.out.println("done in " + loopIndex + " tries");
+                    } else {
+                    	System.out.println("Stopped at itteration: " + loopIndex);
+                    }
+                    
                 } catch (WordError e) {
                     errorMessage = e.getMessage();
                     System.out.println("failed in " + loopIndex + " tries. Error - " + e.getMessage());

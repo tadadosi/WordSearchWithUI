@@ -13,24 +13,27 @@ import application.grid.utils.Shuffle;
 import application.grid.wordsearch.Cell;
 import application.grid.wordsearch.Grid;
 import application.grid.wordsearch.RunGenerator;
+import javafx.animation.AnimationTimer;
 import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
+import javafx.concurrent.Task;
+import javafx.concurrent.WorkerStateEvent;
+import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.geometry.VPos;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
+import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.Slider;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
-import javafx.scene.text.Text;
 import javafx.scene.text.TextAlignment;
-import javafx.scene.text.TextFlow;
 
 public class EventHandlingController {
     
@@ -76,6 +79,11 @@ public class EventHandlingController {
     private CheckBox colorizeLettersCheckBox;
     @FXML
     private Canvas problemCanvas;
+    @FXML
+    private ChoiceBox<String> descrCellsCB;
+    @FXML
+    private Label digitalClock;
+   
     
     private final static int TILE_SIZE = 30;
     
@@ -91,6 +99,10 @@ public class EventHandlingController {
     private int descriptionTiles;
     int circleSize;
     int lineWidth;
+    
+    Task<Void> generateGridTask;
+    
+    
     public static String newLine = System.getProperty("line.separator");
     /**
      * The constructor (is called before the initialize()-method).
@@ -111,6 +123,7 @@ public class EventHandlingController {
     
     @FXML
     private void initialize()  {
+    	addCBChildren();
         setErrorAnswerLabelValue();
         setAnswerLenLabel();
         generateButtonAction();
@@ -123,6 +136,8 @@ public class EventHandlingController {
         shuffleAnswerCheckBoxAction();
         colorizeLettersCheckBoxAction();
         checkWordsButtonAction();
+        stopButtonAction();
+        descrCellsAction(); 
         
         answerSizeLabel.setText(new Integer(answer.length()).toString());
         
@@ -131,40 +146,36 @@ public class EventHandlingController {
     
     private void generateButtonAction() {
         generateButton.setOnAction((event) -> {
-            resetError();
+        	resetError();
             getWordsFromTextArea();
             handleWarn("Generuoja...");
             int totalLetters = answer.length() + insertedLettersSize;
             if (totalLetters != gridSize) {
-                handleError("Ávestas neteisingas raidþiø skaièius!");
+                handleError("Ä®vestas neteisingas raidÅ¾iÅ³ skaicius!");
+            } else if (!wordsValid(words)) {
+            	handleError("Yra per trumpÅ³ Å¾odÅ¾iÅ³!");
             } else {
-//                generateButton.setDisable(true);
-//                stopButton.setDisable(false);
-//                gridThread = new Thread(() -> calculateGrid());
-//                gridThread.start();
-                calculateGrid();
-                
-//                System.out.println(gridThread.getName());
-                
+            	startTimer();
+                generateButton.setDisable(true);
+                stopButton.setDisable(false);
+                disableAllFields(true);
+                clearCanvas();
+                createGenerateTask();
+                new Thread(generateGridTask).start();
             }
+        	
+        	
         });
     }
     
     
-    private void calculateGrid() {
+    private void calculateGrid() throws WordError {
         //xSize slider corresponds to - how many columns and ySize slider - how many rows
         WordConfig config = new WordConfig(ySize,xSize,descriptionTiles);
         RunGenerator gridGenerator = new RunGenerator(config, words, answer);
         Grid gridObj = null;
-        try {
-            gridObj = gridGenerator.run();
+            gridObj = gridGenerator.run(generateGridTask);
             drawGrid(gridObj);
-            handleSuccess("Sugeneravo!");
-        } catch (WordError e) {
-            handleError("Nepavyko sugeneruoti. Bandykite dar kartà.");
-        }
-        generateButton.setDisable(false);
-        stopButton.setDisable(true);
     }
     
     
@@ -353,9 +364,11 @@ public class EventHandlingController {
     private void stopButtonAction() {
         stopButton.setOnAction((event) -> {
 //            gridThread.interrupt();
-            
+        	generateGridTask.cancel();
+        	handleWarn("Sustabdyta");
             generateButton.setDisable(false);
             stopButton.setDisable(true);
+            disableAllFields(false);
         });
     }
     
@@ -363,10 +376,10 @@ public class EventHandlingController {
         saveWordsButton.setOnAction((event) -> {
             getWordsFromTextArea();
             try {
-                handleSuccess("Uþsaugota á words.txt failà");
+                handleSuccess("UÅ¾saugota Ä¯ words.txt failÄ…");
                 writeToFile(FILE_TO_SAVE_WORDS, words);
             } catch (IOException e) {
-                handleError("Nepavyko áraðyti á failà!");
+                handleError("Nepavyko Ä¯raÅ¡yti Ä¯ failÄ…!");
             }
             
             
@@ -378,6 +391,7 @@ public class EventHandlingController {
             resetError();
             Set<String> wordsReversable = new HashSet<>();
             Set<String> wordsIdentical = new HashSet<>();
+            Set<String> wordsShort = new HashSet<>();
             
             getWordsFromTextArea();
             
@@ -386,7 +400,10 @@ public class EventHandlingController {
                 String reversedWord =  new StringBuilder(lowerWord).reverse().toString();
                 if (lowerWord.equals(reversedWord)) {
                     wordsReversable.add(wordWithoutNumber(w));
-                }    
+                }
+                if (lowerWord.length() < 5) {
+                	wordsShort.add(wordWithoutNumber(w));
+                }
             }
            
             for (int i = 0; i < words.size()-1; i++) {
@@ -397,7 +414,7 @@ public class EventHandlingController {
                 }
             }    
             
-            handleWanrWords(wordsReversable, wordsIdentical);
+            handleWanrWords(wordsReversable, wordsIdentical, wordsShort);
         });
     }
     
@@ -454,9 +471,10 @@ public class EventHandlingController {
                 //Lets check if there are any numbers which means this will be description empty cells, which take as many cells as number itself. Means we add +1 if its 2 and +2 if 3...
                 for (String word : w) {
                     if (!word.isEmpty()) {
-                        word = word.trim().replaceAll("\\s+","");
+                    	word = word.trim().replaceAll("\\s+","");
                         insertedLettersSize += word.length();
                         char c = word.charAt(0);
+                        changeDescCellNumber(descrCellsCB.getValue(), c);
                         switch (c) {
                         case '2':
                             insertedLettersSize++;
@@ -476,7 +494,35 @@ public class EventHandlingController {
             }
         }); 
     }
+    private boolean descrCellsEqualsSelected(String selectedValue, char letter) {
+    	char selectedChar = selectedValue.charAt(0);
+    	if (selectedChar == '1' || selectedChar == '2' || selectedChar == '3' || selectedChar == '4') {
+    		return selectedValue.charAt(0) == letter;
+    	}
+    	if (selectedChar == '0') {
+    		return letter != '1' && letter != '2' && letter != '3' && letter != '4';
+    	}
+    	return true;
+    	
+    }
     
+    private void changeDescCellNumber(String selectedValue, char letter) {
+    	if (!descrCellsEqualsSelected(selectedValue, letter))
+    		descrCellsCB.getSelectionModel().selectFirst();
+    }
+    
+    private void descrCellsAction() {
+    	descrCellsCB.getSelectionModel().selectedItemProperty().addListener(new ChangeListener<String>() {
+    	      @Override
+    	      public void changed(ObservableValue<? extends String> observableValue, String oldValue, String newValue) {
+    	        if ("1".equals(newValue) || "2".equals(newValue) || "3".equals(newValue) || "4".equals(newValue)) {
+    	        	addNumbersToWords(newValue);
+    	        } else if ("0".equals(newValue)) {
+    	        	removeNumbersToWords();
+    	        }
+    	      }
+    	    });
+    }
     
     private void getHorizontalSlidersParameter() {
         horizontalSlider.valueProperty().addListener(new ChangeListener<Object>() {
@@ -520,10 +566,9 @@ public class EventHandlingController {
     
     private void getWordsFromTextArea() {
         if (inputWordTextArea.getText().equals("")) {
-            handleError("Nerasta nei vieno þodþio!");
+            handleError("Nerasta nei vieno Å¾odÅ¾io!");
         } else {
             words = getWords(inputWordTextArea.getText().split("\n"));
-            System.out.println(words);
         }
     }
     
@@ -542,6 +587,68 @@ public class EventHandlingController {
         return words;
     }
     
+    private void addNumbersToWords(String newValue) {
+    	List<String> newWords = new ArrayList<>();
+    	
+    	if (inputWordTextArea.getText().equals("")) {
+    		handleError("Nerasta nei vieno Å¾odÅ¾io!");
+        } else {
+        	String[] wordsArr = inputWordTextArea.getText().split("\n");
+        	for (String w : wordsArr) {
+                if (!w.isEmpty()) {
+               	 String firstLetter = w.substring(0, 1);
+               	 if ("1".equals(firstLetter) || "2".equals(firstLetter) || "3".equals(firstLetter) || "4".equals(firstLetter)) {
+               		newWords.add(changeFirstLetter(newValue, w));
+               	 } else {
+               		newWords.add(addFirstLetter(newValue, w));
+               	 }
+                }
+            }
+        	setWordsToArea(newWords);
+        }
+    }
+    
+    private void setWordsToArea(List<String> wordList) {
+    	String newText = "";
+    	for (String word: wordList) {
+    		newText += word + newLine;
+    	}
+    	inputWordTextArea.setText(newText);
+    }
+    
+    private void removeNumbersToWords() {
+    	List<String> newWords = new ArrayList<>();
+
+    	if (inputWordTextArea.getText().equals("")) {
+    		handleError("Nerasta nei vieno Å¾odÅ¾io!");
+        } else {
+        	String[] wordsArr = inputWordTextArea.getText().split("\n");
+        	for (String w : wordsArr) {
+                if (!w.isEmpty()) {
+               	 String firstLetter = w.substring(0, 1);
+               	 if ("1".equals(firstLetter) || "2".equals(firstLetter) || "3".equals(firstLetter) || "4".equals(firstLetter)) {
+               		newWords.add(removeFirstLetter(w));
+               	 }
+                }
+            }
+        	setWordsToArea(newWords);
+        }
+    }
+    
+    private String removeFirstLetter(String word) {
+    	String newWord = word.substring(1, word.length());
+    	return newWord;
+    }
+    
+    private String changeFirstLetter(String newLetter, String word) {
+    	String newWord = newLetter + word.substring(1, word.length());
+    	return newWord;
+    }
+    private String addFirstLetter(String newLetter, String word) {
+    	String newWord = newLetter + word;
+    	return newWord;
+    }
+    
     private void handleError(String err) {
         errorLabel.setTextFill(Color.RED);
         errorLabel.setText(err);
@@ -553,34 +660,52 @@ public class EventHandlingController {
     }
     
     private void handleWarn(String err) {
-        errorLabel.setTextFill(Color.ORANGE);
+        errorLabel.setTextFill(Color.DARKORANGE);
         errorLabel.setText(err);
     }
     
-    private void handleWanrWords(Set<String> reversableWords, Set<String> identicalWords) {
+    private void handleWanrWords(Set<String> reversableWords, Set<String> identicalWords, Set<String> shortWords) {
         String msg = "";
         
+        msg += "SimetriÅ¡ki Å¾odÅ¾iai: " + newLine;
+        
         if (reversableWords != null && !reversableWords.isEmpty()) {
-            msg += "Simetriðki þodþiai: " + newLine;
             for (String rw : reversableWords) {
                 msg += rw + ", ";
             }
             msg = msg.substring(0, msg.length() - 2);
             msg += newLine;
+            msg += newLine;
+        } else {
+        	msg += "-" + newLine + newLine;
         }
         
+        
+        msg += "Besikartojantys Å¾odÅ¾iai: " + newLine;
+        
         if (identicalWords != null && !identicalWords.isEmpty()) {
-            msg += "Besikartojantys þodþiai: " + newLine;
             for (String iw : identicalWords) {
                 msg += iw + ", ";
             }
             msg = msg.substring(0, msg.length() - 2);
-        }
-        if (reversableWords.isEmpty() && identicalWords.isEmpty() ) {
-            msg = "Nerasta.";
+            msg += newLine;
+            msg += newLine;
+        } else {
+        	msg += "-" + newLine + newLine;
         }
         
-        warnWordsLabel.setTextFill(Color.ORANGE);
+        msg += "Trumpi Å¾odÅ¾iai: " + newLine;
+        
+        if (shortWords != null && !shortWords.isEmpty()) {
+            for (String sw : shortWords) {
+                msg += sw + ", ";
+            }
+            msg = msg.substring(0, msg.length() - 2);
+        } else {
+        	msg += "-" + newLine + newLine;
+        }
+        
+        warnWordsLabel.setTextFill(Color.DARKORANGE);
         warnWordsLabel.setText(msg);
         
 //        TextFlow flow = new TextFlow();
@@ -651,5 +776,83 @@ public class EventHandlingController {
         }
         gc.setLineWidth(lineWidth);
         gc.setStroke(Color.BLACK);
+    }
+    
+    private void createGenerateTask() {
+    	generateGridTask = new Task<Void>() {
+            @Override
+            protected Void call() throws Exception {
+            	calculateGrid();
+				return null;
+            }
+        };
+        generateGridTask.setOnSucceeded(new EventHandler<WorkerStateEvent>() {
+            @Override
+            public void handle(WorkerStateEvent t)
+            {
+              handleSuccess("Sugeneravo!");
+              generateButton.setDisable(false);
+              stopButton.setDisable(true);
+              disableAllFields(false);
+            }
+        });
+        
+        generateGridTask.setOnFailed(new EventHandler<WorkerStateEvent>() {
+            @Override
+            public void handle(WorkerStateEvent t)
+            {
+              handleError("Nepavyko sugeneruoti. Bandykite dar.");
+              generateButton.setDisable(false);
+              stopButton.setDisable(true);
+              disableAllFields(false);
+             
+            }
+        });
+    }
+    
+    private void clearCanvas() {
+    	GraphicsContext gc = answerCanvas.getGraphicsContext2D();
+        GraphicsContext pc = problemCanvas.getGraphicsContext2D();
+        GraphicsContext vc = viewCanvas.getGraphicsContext2D();
+        gc.clearRect(0, 0, answerCanvas.getWidth(), answerCanvas.getHeight());
+        vc.clearRect(0, 0, viewCanvas.getWidth(), viewCanvas.getHeight());
+        pc.clearRect(0, 0, problemCanvas.getWidth(), problemCanvas.getHeight());
+    }
+    
+    private void disableAllFields(boolean disable) {
+    	 inputWordTextArea.setDisable(disable);
+         horizontalSlider.setDisable(disable);
+         verticalSlider.setDisable(disable);
+         answerTextField.setDisable(disable);
+         shuffleAnswerCheckBox.setDisable(disable);
+         colorizeLettersCheckBox.setDisable(disable);
+         descrCellsCB.setDisable(disable);
+    }
+    
+    private boolean wordsValid(List<String> allWords) {
+    	for (String w: allWords) {
+    		if (wordWithoutNumber(w) != null && wordWithoutNumber(w).length() < 3) 
+    			return false;
+    	}
+    	return true;
+    }
+    private void addCBChildren() {
+    	descrCellsCB.getItems().add("-");
+    	descrCellsCB.getItems().add("0");
+    	descrCellsCB.getItems().add("1");
+    	descrCellsCB.getItems().add("2");
+    	descrCellsCB.getItems().add("3");
+    	descrCellsCB.getItems().add("4");
+    	descrCellsCB.getSelectionModel().selectFirst();
+    }
+    private void startTimer() {
+    	long startTime = System.currentTimeMillis();
+    	new AnimationTimer() {
+            @Override
+            public void handle(long now) {
+                long elapsedMillis = System.currentTimeMillis() - startTime ;
+                digitalClock.setText(Long.toString(elapsedMillis / 1000));
+            }
+        }.start();
     }
 }
