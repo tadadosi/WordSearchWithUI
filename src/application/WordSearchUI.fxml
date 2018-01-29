@@ -78,7 +78,7 @@
                   <Slider fx:id="verticalSlider" layoutX="35.0" layoutY="50.0" majorTickUnit="10.0" max="30.0" minorTickCount="5" nodeOrientation="RIGHT_TO_LEFT" orientation="VERTICAL" showTickLabels="true" showTickMarks="true" value="10.0" />
                   <TextField fx:id="answerTextField" layoutX="263.0" layoutY="50.0" prefHeight="25.0" prefWidth="190.0" />
                   <Label fx:id="errorAnswerLabel" layoutX="263.0" layoutY="144.0" prefHeight="17.0" prefWidth="102.0" textFill="RED" />
-                  <CheckBox fx:id="shuffleAnswerCheckBox" layoutX="263.0" layoutY="86.0" mnemonicParsing="false" text="Išmėtytos rakto raidės (random)">
+                  <CheckBox fx:id="shuffleAnswerCheckBox" layoutX="263.0" layoutY="86.0" mnemonicParsing="false" text="Išmėtytos rakto raidės">
                      <font>
                         <Font name="Segoe UI" size="12.0" />
                      </font></CheckBox>
@@ -98,11 +98,11 @@
                      <font>
                         <Font name="Segoe UI" size="14.0" />
                      </font></Button>
-                  <Button layoutX="511.0" layoutY="190.0" mnemonicParsing="false" prefHeight="25.0" prefWidth="113.0" text="Pagalba" visible="false">
+                  <Button fx:id="helpButton" layoutX="511.0" layoutY="190.0" mnemonicParsing="false" prefHeight="25.0" prefWidth="113.0" text="Pagalba" visible="true">
 	                  <font>
 	                  	<Font name="Segoe UI" size="14.0" />
 	                  </font></Button>
-                  <Label fx:id="errorLabel" layoutX="35.0" layoutY="233.0" prefHeight="17.0" prefWidth="603.0" textFill="RED" />
+                  <Label fx:id="errorLabel" layoutX="35.0" layoutY="233.0" prefHeight="17.0" prefWidth="721.0" textFill="RED" />
                   <Label fx:id="sizeLabel" alignment="CENTER" contentDisplay="CENTER" layoutX="79.0" layoutY="94.0" prefHeight="38.0" prefWidth="125.0" text="10X10" textAlignment="CENTER">
                      <font>
                         <Font name="Segoe UI" size="26.0" />
@@ -122,7 +122,7 @@
                         <Font name="Segoe UI" size="14.0" />
                      </font>
                   </Label>
-                  <Button fx:id="saveWordsButton" layoutX="643.0" layoutY="91.0" mnemonicParsing="false" prefHeight="25.0" prefWidth="113.0" text="Išsaugoti">
+                  <Button fx:id="saveWordsButton" layoutX="643.0" layoutY="91.0" mnemonicParsing="false" prefHeight="25.0" prefWidth="113.0" text="Išsaugoti žod.">
                      <font>
                         <Font name="Segoe UI" size="14.0" />
                      </font></Button>
@@ -134,7 +134,7 @@
                      <font>
                         <Font name="Segoe UI" size="14.0" />
                      </font></Label>
-                  <Button fx:id="checkWordsButton" layoutX="643.0" layoutY="50.0" mnemonicParsing="false" prefHeight="25.0" prefWidth="113.0" text="Tikrinti">
+                  <Button fx:id="checkWordsButton" layoutX="643.0" layoutY="50.0" mnemonicParsing="false" prefHeight="25.0" prefWidth="113.0" text="Tikrinti žod.">
                      <font>
                         <Font size="14.0" />
                      </font></Button>

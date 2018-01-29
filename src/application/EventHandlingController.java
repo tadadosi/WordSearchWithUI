@@ -13,7 +13,6 @@ import application.grid.utils.Shuffle;
 import application.grid.wordsearch.Cell;
 import application.grid.wordsearch.Grid;
 import application.grid.wordsearch.RunGenerator;
-import javafx.animation.AnimationTimer;
 import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
@@ -22,6 +21,7 @@ import javafx.concurrent.WorkerStateEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.geometry.VPos;
+import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.Button;
@@ -31,9 +31,13 @@ import javafx.scene.control.Label;
 import javafx.scene.control.Slider;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
+import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
+import javafx.scene.text.Text;
 import javafx.scene.text.TextAlignment;
+import javafx.stage.Modality;
+import javafx.stage.Stage;
 
 public class EventHandlingController {
     
@@ -49,6 +53,8 @@ public class EventHandlingController {
     private Button saveWordsButton;
     @FXML
     private Button checkWordsButton;
+    @FXML
+    private Button helpButton;
     @FXML
     private TextArea outputTextArea;
     @FXML
@@ -101,7 +107,7 @@ public class EventHandlingController {
     int lineWidth;
     
     Task<Void> generateGridTask;
-    
+    private TimerClock timerClock;
     
     public static String newLine = System.getProperty("line.separator");
     /**
@@ -138,7 +144,7 @@ public class EventHandlingController {
         checkWordsButtonAction();
         stopButtonAction();
         descrCellsAction(); 
-        
+//        helpButtonAction();
         answerSizeLabel.setText(new Integer(answer.length()).toString());
         
     }
@@ -155,7 +161,9 @@ public class EventHandlingController {
             } else if (!wordsValid(words)) {
             	handleError("Yra per trumpų žodžių!");
             } else {
-            	startTimer();
+//                timeStart = System.currentTimeMillis();
+                timerClock = new TimerClock(errorLabel);
+            	timerClock.start();
                 generateButton.setDisable(true);
                 stopButton.setDisable(false);
                 disableAllFields(true);
@@ -167,6 +175,28 @@ public class EventHandlingController {
         	
         });
     }
+    
+//    private void helpButtonAction() {
+//        helpButton.setOnAction((event) -> {
+//            final Stage dialog = new Stage();
+//            dialog.initModality(Modality.APPLICATION_MODAL);
+////            dialog.initOwner(primaryStage);
+//            VBox dialogVbox = new VBox(20);
+//            Text helpText = new Text(
+//                    "1. Žodius atskirkite nauja eilute" + newLine +
+//                    "2. Žodžiai privalo būti ilgesni nei dvi raidės" + newLine +
+//                    "3. Žodžiuose negali būti simbolio #" + newLine +
+//                    "4. Algoritmas geriau skaičiuoja jeigu yra trumpi žodžiai, ilgas raktinis žodis, maža matrica, mažai aprašymo laukelių" + newLine
+//                    );
+//            helpText.setFont(new Font());
+//            
+//            
+//            dialogVbox.getChildren().add(helpText);
+//            Scene dialogScene = new Scene(dialogVbox, 300, 200);
+//            dialog.setScene(dialogScene);
+//            dialog.show();
+//        });
+//    }
     
     
     private void calculateGrid() throws WordError {
@@ -363,8 +393,8 @@ public class EventHandlingController {
     
     private void stopButtonAction() {
         stopButton.setOnAction((event) -> {
-//            gridThread.interrupt();
         	generateGridTask.cancel();
+        	timerClock.stop();
         	handleWarn("Sustabdyta");
             generateButton.setDisable(false);
             stopButton.setDisable(true);
@@ -388,7 +418,7 @@ public class EventHandlingController {
     
     private void checkWordsButtonAction() {
         checkWordsButton.setOnAction((event) -> {
-            resetError();
+//            resetError();
             Set<String> wordsReversable = new HashSet<>();
             Set<String> wordsIdentical = new HashSet<>();
             Set<String> wordsShort = new HashSet<>();
@@ -628,6 +658,8 @@ public class EventHandlingController {
                	 String firstLetter = w.substring(0, 1);
                	 if ("1".equals(firstLetter) || "2".equals(firstLetter) || "3".equals(firstLetter) || "4".equals(firstLetter)) {
                		newWords.add(removeFirstLetter(w));
+               	 } else {
+               	     newWords.add(w);
                	 }
                 }
             }
@@ -783,6 +815,7 @@ public class EventHandlingController {
             @Override
             protected Void call() throws Exception {
             	calculateGrid();
+            	timerClock.stop();
 				return null;
             }
         };
@@ -790,7 +823,7 @@ public class EventHandlingController {
             @Override
             public void handle(WorkerStateEvent t)
             {
-              handleSuccess("Sugeneravo!");
+              timerClock.successMessage(errorLabel);
               generateButton.setDisable(false);
               stopButton.setDisable(true);
               disableAllFields(false);
@@ -844,15 +877,5 @@ public class EventHandlingController {
     	descrCellsCB.getItems().add("3");
     	descrCellsCB.getItems().add("4");
     	descrCellsCB.getSelectionModel().selectFirst();
-    }
-    private void startTimer() {
-    	long startTime = System.currentTimeMillis();
-    	new AnimationTimer() {
-            @Override
-            public void handle(long now) {
-                long elapsedMillis = System.currentTimeMillis() - startTime ;
-                digitalClock.setText(Long.toString(elapsedMillis / 1000));
-            }
-        }.start();
     }
 }
