@@ -5,12 +5,12 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
-import javax.swing.text.AbstractDocument.LeafElement;
 
 import application.err.WordError;
 import application.grid.config.WordConfig;
 import application.grid.utils.BinPacking;
 import application.grid.utils.Validations;
+import javafx.concurrent.Task;
 
 
 public class StartingPoint {
@@ -30,11 +30,13 @@ public class StartingPoint {
 	
 	public long binTime = 0;
 	public long enterWordTime = 0;
+	private Task<Void> task;
 	
-	public StartingPoint(List<String> words, String answer, WordConfig config) {
+	public StartingPoint(List<String> words, String answer, WordConfig config, Task<Void> task) {
         this.words = words;
         this.answer = answer;
         this.config = config;
+        this.task = task;
     }
 
 
@@ -63,7 +65,11 @@ public class StartingPoint {
 		int skaitiklis = 0;
 		
 		for (this.zingsniai = 0; zingsniai< words.size(); zingsniai++) {
-		    String myWord = words.get(this.zingsniai);
+		    if (task.isCancelled()) {
+		    	break;
+		    }
+			
+			String myWord = words.get(this.zingsniai);
 			// select starting position for the word
 		    
 //		    System.out.println("bin laikas: " + binTime);
@@ -105,7 +111,7 @@ public class StartingPoint {
 
                 
                 //Try to add word
-                while (loopIndex < 75 && !added) {
+                while (loopIndex < 75 && !added && !task.isCancelled()) {
                     loopIndex++;
                     int[] coord = startingPosition(finalGrid, areaForWord, loopIndex, myWord);
                     
