@@ -98,7 +98,7 @@
                      <font>
                         <Font name="Segoe UI" size="14.0" />
                      </font></Button>
-                  <Button fx:id="helpButton" layoutX="511.0" layoutY="190.0" mnemonicParsing="false" prefHeight="25.0" prefWidth="113.0" text="Pagalba" visible="true">
+                  <Button fx:id="helpButton" layoutX="511.0" layoutY="190.0" mnemonicParsing="false" prefHeight="25.0" prefWidth="113.0" text="Pagalba" visible="false">
 	                  <font>
 	                  	<Font name="Segoe UI" size="14.0" />
 	                  </font></Button>
