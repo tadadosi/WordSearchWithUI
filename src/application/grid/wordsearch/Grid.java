@@ -3,6 +3,12 @@ package application.grid.wordsearch;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlSeeAlso;
+
+@XmlRootElement
+@XmlSeeAlso(value = {Cell.class })
 public class Grid{
 	Cell[][] grid;
 	
@@ -241,7 +247,7 @@ public class Grid{
 		}
 		return coordList;
 	}
-
+	@XmlElement(type=Cell.class)
 	public Cell[][] getGrid() {
 		return grid;
 	}

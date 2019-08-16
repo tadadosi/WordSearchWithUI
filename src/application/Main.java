@@ -16,10 +16,11 @@ public class Main extends Application {
         
         try {
             FXMLLoader loader = new FXMLLoader(Main.class.getResource("WordSearchUI.fxml"));
+//            FXMLLoader loader = new FXMLLoader(Main.class.getResource("test.fxml"));
             AnchorPane page = (AnchorPane) loader.load();
             Scene scene = new Scene(page);
             primaryStage.setScene(scene);
-            primaryStage.setResizable(false);
+            primaryStage.setResizable(true);
             primaryStage.show();
         } catch (IOException e) {
             e.printStackTrace();
